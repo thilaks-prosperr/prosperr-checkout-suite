@@ -9,11 +9,11 @@ interface SalesNavbarProps {
 const SalesNavbar = ({ role }: SalesNavbarProps) => {
   const location = useLocation();
 
-  const bdaLinks = [
+  const bdaLinks: { to: string; label: string; icon: typeof LayoutDashboard; badge?: number }[] = [
     { to: "/checkout/sales", label: "Sessions", icon: LayoutDashboard },
     { to: "/approval", label: "Approvals", icon: ClipboardCheck },
   ];
-  const superiorLinks = [
+  const superiorLinks: { to: string; label: string; icon: typeof LayoutDashboard; badge?: number }[] = [
     { to: "/approval", label: "Pending Approvals", icon: ClipboardCheck, badge: 2 },
   ];
   const links = role === "bda" ? bdaLinks : superiorLinks;
@@ -35,7 +35,7 @@ const SalesNavbar = ({ role }: SalesNavbarProps) => {
               >
                 <link.icon size={16} />
                 {link.label}
-                {"badge" in link && link.badge && (
+                {link.badge != null && link.badge > 0 && (
                   <span className="w-5 h-5 rounded-full bg-sales-accent text-[10px] font-bold flex items-center justify-center text-sales-accent-foreground">
                     {link.badge}
                   </span>

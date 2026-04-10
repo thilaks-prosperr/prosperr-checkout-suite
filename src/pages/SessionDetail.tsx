@@ -128,7 +128,7 @@ const SessionDetail = () => {
         )}
 
         {/* Timeout options */}
-        {status === "AWAITING_APPROVAL" && timedOut && !selfApproved && status !== "DRAFT" && (
+        {status === "AWAITING_APPROVAL" && timedOut && !selfApproved && (
           <div className="sales-card p-5 mb-4 space-y-4">
             <div className="flex items-center gap-2">
               <AlertTriangle size={20} className="text-amber-400" />
