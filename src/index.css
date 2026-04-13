@@ -6,77 +6,117 @@
 
 @layer base {
   :root {
-    --background: 0 0% 100%;
-    --foreground: 210 11% 15%;
-    --card: 0 0% 100%;
-    --card-foreground: 210 11% 15%;
-    --popover: 0 0% 100%;
-    --popover-foreground: 210 11% 15%;
-    --primary: 153 44% 30%;
-    --primary-foreground: 0 0% 100%;
-    --primary-light: 152 40% 55%;
-    --primary-lighter: 140 30% 95%;
-    --secondary: 210 40% 96.1%;
-    --secondary-foreground: 210 11% 15%;
-    --muted: 210 40% 96.1%;
-    --muted-foreground: 215.4 16.3% 46.9%;
-    --accent: 152 40% 55%;
-    --accent-foreground: 0 0% 100%;
-    --destructive: 0 84.2% 60.2%;
-    --destructive-foreground: 210 40% 98%;
-    --border: 214.3 31.8% 91.4%;
-    --input: 214.3 31.8% 91.4%;
-    --ring: 153 44% 30%;
+    /* Prosperr brand tokens */
+    --green-900: 149 100% 28%;
+    --green-700: 148 83% 33%;
+    --green-500: 143 78% 41%;
+    --green-300: 147 70% 56%;
+    --green-100: 147 94% 71%;
+    --green-50: 147 100% 85%;
+
+    --navy-950: 220 75% 4%;
+    --navy-900: 213 64% 10%;
+    --navy-800: 212 62% 15%;
+    --navy-700: 220 32% 11%;
+    --navy-600: 227 41% 19%;
+    --navy-500: 216 30% 23%;
+    --navy-400: 212 27% 27%;
+
+    --blue-800: 233 79% 24%;
+    --blue-700: 233 76% 25%;
+    --blue-600: 227 49% 26%;
+    --blue-500: 224 33% 27%;
+    --blue-200: 218 53% 90%;
+    --blue-100: 218 70% 93%;
+    --blue-50: 236 45% 95%;
+
+    --white: 0 0% 100%;
+    --off-white: 45 20% 95%;
+    --gray-800: 210 2% 13%;
+    --gray-700: 0 0% 12%;
+    --gray-500: 60 1% 29%;
+    --gray-400: 217 14% 47%;
+    --gray-300: 222 14% 70%;
+    --gray-200: 0 0% 82%;
+    --gray-100: 0 0% 86%;
+
+    --gold: 46 63% 52%;
+    --gold-light: 42 94% 62%;
+
+    --error: 221 72% 50%;
+
+    /* Semantic mappings — light (customer) */
+    --background: var(--off-white);
+    --foreground: var(--gray-800);
+    --card: var(--white);
+    --card-foreground: var(--gray-800);
+    --popover: var(--white);
+    --popover-foreground: var(--gray-800);
+    --primary: var(--green-700);
+    --primary-foreground: var(--white);
+    --primary-light: var(--green-500);
+    --primary-lighter: var(--green-50);
+    --secondary: var(--blue-100);
+    --secondary-foreground: var(--gray-800);
+    --muted: var(--blue-50);
+    --muted-foreground: var(--gray-400);
+    --accent: var(--green-500);
+    --accent-foreground: var(--white);
+    --destructive: 0 84% 60%;
+    --destructive-foreground: var(--white);
+    --border: var(--gray-100);
+    --input: var(--gray-100);
+    --ring: var(--green-700);
     --radius: 0.75rem;
 
     /* Sales portal dark theme tokens */
-    --sales-bg: 213 58% 10%;
-    --sales-surface: 213 50% 14%;
-    --sales-surface-hover: 213 45% 18%;
-    --sales-border: 213 40% 22%;
-    --sales-foreground: 210 40% 96%;
-    --sales-muted: 215 20% 60%;
-    --sales-accent: 193 100% 42%;
-    --sales-accent-foreground: 0 0% 100%;
+    --sales-bg: var(--navy-950);
+    --sales-surface: var(--navy-800);
+    --sales-surface-hover: var(--navy-600);
+    --sales-border: var(--navy-500);
+    --sales-foreground: var(--off-white);
+    --sales-muted: var(--gray-400);
+    --sales-accent: var(--green-500);
+    --sales-accent-foreground: var(--white);
 
-    --sidebar-background: 0 0% 98%;
-    --sidebar-foreground: 240 5.3% 26.1%;
-    --sidebar-primary: 240 5.9% 10%;
-    --sidebar-primary-foreground: 0 0% 98%;
-    --sidebar-accent: 240 4.8% 95.9%;
-    --sidebar-accent-foreground: 240 5.9% 10%;
-    --sidebar-border: 220 13% 91%;
-    --sidebar-ring: 217.2 91.2% 59.8%;
+    --sidebar-background: var(--off-white);
+    --sidebar-foreground: var(--gray-800);
+    --sidebar-primary: var(--green-700);
+    --sidebar-primary-foreground: var(--white);
+    --sidebar-accent: var(--blue-50);
+    --sidebar-accent-foreground: var(--gray-800);
+    --sidebar-border: var(--gray-100);
+    --sidebar-ring: var(--green-700);
   }
 
   .dark {
-    --background: 213 58% 10%;
-    --foreground: 210 40% 96%;
-    --card: 213 50% 14%;
-    --card-foreground: 210 40% 96%;
-    --popover: 213 50% 14%;
-    --popover-foreground: 210 40% 96%;
-    --primary: 193 100% 42%;
-    --primary-foreground: 0 0% 100%;
-    --secondary: 213 45% 18%;
-    --secondary-foreground: 210 40% 96%;
-    --muted: 213 45% 18%;
-    --muted-foreground: 215 20% 60%;
-    --accent: 193 100% 42%;
-    --accent-foreground: 0 0% 100%;
-    --destructive: 0 62.8% 30.6%;
-    --destructive-foreground: 210 40% 98%;
-    --border: 213 40% 22%;
-    --input: 213 40% 22%;
-    --ring: 193 100% 42%;
-    --sidebar-background: 213 58% 10%;
-    --sidebar-foreground: 210 40% 96%;
-    --sidebar-primary: 193 100% 42%;
-    --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 213 45% 18%;
-    --sidebar-accent-foreground: 210 40% 96%;
-    --sidebar-border: 213 40% 22%;
-    --sidebar-ring: 193 100% 42%;
+    --background: var(--navy-950);
+    --foreground: var(--off-white);
+    --card: var(--navy-800);
+    --card-foreground: var(--off-white);
+    --popover: var(--navy-800);
+    --popover-foreground: var(--off-white);
+    --primary: var(--green-500);
+    --primary-foreground: var(--white);
+    --secondary: var(--navy-600);
+    --secondary-foreground: var(--off-white);
+    --muted: var(--navy-600);
+    --muted-foreground: var(--gray-400);
+    --accent: var(--green-500);
+    --accent-foreground: var(--white);
+    --destructive: 0 63% 31%;
+    --destructive-foreground: var(--off-white);
+    --border: var(--navy-500);
+    --input: var(--navy-500);
+    --ring: var(--green-500);
+    --sidebar-background: var(--navy-950);
+    --sidebar-foreground: var(--off-white);
+    --sidebar-primary: var(--green-500);
+    --sidebar-primary-foreground: var(--white);
+    --sidebar-accent: var(--navy-600);
+    --sidebar-accent-foreground: var(--off-white);
+    --sidebar-border: var(--navy-500);
+    --sidebar-ring: var(--green-500);
   }
 }
 
@@ -92,7 +132,7 @@
 
 /* Checkout gradient */
 .checkout-gradient {
-  background: linear-gradient(180deg, hsl(153 44% 30% / 0.08) 0%, transparent 40%);
+  background: linear-gradient(180deg, hsl(var(--green-700) / 0.08) 0%, transparent 40%);
 }
 
 /* Sales portal styles */
@@ -135,5 +175,5 @@
 .otp-box:focus {
   border-color: hsl(var(--primary));
   outline: none;
-  box-shadow: 0 0 0 3px hsl(153 44% 30% / 0.15);
+  box-shadow: 0 0 0 3px hsl(var(--green-700) / 0.15);
 }
