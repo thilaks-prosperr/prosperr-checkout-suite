@@ -1,6 +1,6 @@
 import { useState, useCallback } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import { ArrowLeft, AlertTriangle, Save, ShieldAlert } from "lucide-react";
+import { ArrowLeft, AlertTriangle, Save, ShieldAlert, ExternalLink, CheckCircle2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import SalesNavbar from "@/components/SalesNavbar";
 import SessionStatusChip from "@/components/SessionStatusChip";
@@ -32,7 +32,6 @@ const SessionDetail = () => {
     timeline.push({ event: "Payment link generated", time: "2:40 PM", status: "PAYMENT_LINK_GENERATED" });
   }
 
-  // Simulate approval after 8 seconds for demo
   const handleTimeout = useCallback(() => {
     setTimedOut(true);
   }, []);
@@ -59,10 +58,7 @@ const SessionDetail = () => {
       <SalesNavbar role="bda" />
 
       <div className="max-w-lg mx-auto px-6 py-8">
-        <button
-          onClick={() => navigate("/checkout/sales")}
-          className="text-sm text-sales-accent flex items-center gap-1 mb-6"
-        >
+        <button onClick={() => navigate("/checkout/sales")} className="text-sm text-sales-accent flex items-center gap-1 mb-6">
           <ArrowLeft size={16} /> Back
         </button>
 
@@ -89,39 +85,51 @@ const SessionDetail = () => {
             <span className="text-sales-muted">Plan</span>
             <span className="text-sales-foreground">{session.categoryName}</span>
             <span className="text-sales-muted">Amount</span>
-            <span className="text-sales-foreground font-semibold">{formatINR(session.payableAmount)}</span>
+            <span className="text-sales-foreground font-semibold">
+              {formatINR(session.payableAmount)} / {formatINR(session.planAmount)}
+            </span>
           </div>
+        </div>
+
+        {/* HubSpot Sync Status */}
+        <div className="sales-card p-4 space-y-2 mb-4">
+          <h3 className="text-sm font-semibold text-sales-foreground">HubSpot Sync</h3>
+          {session.hubspotContactId ? (
+            <div className="space-y-1.5 text-sm">
+              <div className="flex items-center justify-between">
+                <span className="text-sales-muted">Contact ID: <span className="text-sales-foreground font-mono">{session.hubspotContactId}</span></span>
+                <a href="#" className="text-sales-accent text-xs flex items-center gap-1">View in HubSpot <ExternalLink size={10} /></a>
+              </div>
+              <div className="flex items-center gap-1.5 text-sales-muted">
+                <CheckCircle2 size={12} style={{ color: "hsl(var(--green-300))" }} />
+                <span>Payment Status synced</span>
+                <span className="text-xs">· Last synced: {session.hubspotLastSyncedAt || "—"}</span>
+              </div>
+              <div className="flex items-center gap-1.5 text-sales-muted">
+                <CheckCircle2 size={12} style={{ color: "hsl(var(--green-300))" }} />
+                <span>Payment Link pushed</span>
+              </div>
+              <div className="flex items-center gap-1.5 text-sales-muted">
+                <CheckCircle2 size={12} style={{ color: "hsl(var(--green-300))" }} />
+                <span>Amount synced: {formatINR(session.payableAmount)}</span>
+              </div>
+            </div>
+          ) : (
+            <p className="text-sm text-sales-muted">HubSpot not linked — sync unavailable</p>
+          )}
         </div>
 
         {/* Approval Section */}
         {status === "AWAITING_APPROVAL" && !timedOut && (
           <div className="sales-card p-5 mb-4 space-y-4">
             <div className="flex items-center gap-2">
-              <span className="text-amber-400 text-lg">⏳</span>
+              <span className="text-lg" style={{ color: "hsl(var(--gold-light))" }}>⏳</span>
               <h3 className="font-semibold text-sales-foreground">Awaiting Approval</h3>
             </div>
-            <p className="text-sm text-sales-muted">
-              A superior needs to approve this session before the payment link is generated.
-            </p>
-
-            <ApprovalTimer
-              totalSeconds={180}
-              startedAt={session.approvalRequestedAt}
-              onTimeout={handleTimeout}
-              dark
-            />
-
-            <p className="text-xs text-sales-muted">
-              Notified: {session.superiors.join(", ")}
-            </p>
-
-            {/* Demo: simulate approval */}
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={handleSimulateApproval}
-              className="border-sales-border text-sales-accent text-xs"
-            >
+            <p className="text-sm text-sales-muted">A superior needs to approve this session before the payment link is generated.</p>
+            <ApprovalTimer totalSeconds={180} startedAt={session.approvalRequestedAt} onTimeout={handleTimeout} dark />
+            <p className="text-xs text-sales-muted">Notified: {session.superiors.join(", ")}</p>
+            <Button variant="outline" size="sm" onClick={handleSimulateApproval} className="border-sales-border text-sales-accent text-xs">
               🎬 Demo: Simulate Approval
             </Button>
           </div>
@@ -131,24 +139,15 @@ const SessionDetail = () => {
         {status === "AWAITING_APPROVAL" && timedOut && !selfApproved && (
           <div className="sales-card p-5 mb-4 space-y-4">
             <div className="flex items-center gap-2">
-              <AlertTriangle size={20} className="text-amber-400" />
+              <AlertTriangle size={20} style={{ color: "hsl(var(--gold-light))" }} />
               <h3 className="font-semibold text-sales-foreground">Approval Timeout</h3>
             </div>
-            <p className="text-sm text-sales-muted">
-              No superior responded in 3 minutes. What would you like to do?
-            </p>
+            <p className="text-sm text-sales-muted">No superior responded in 3 minutes. What would you like to do?</p>
             <div className="flex gap-3">
-              <Button
-                variant="outline"
-                onClick={handleSaveDraft}
-                className="flex-1 border-sales-border text-sales-muted gap-2"
-              >
+              <Button variant="outline" onClick={handleSaveDraft} className="flex-1 border-sales-border text-sales-muted gap-2">
                 <Save size={16} /> Save as Draft
               </Button>
-              <Button
-                onClick={() => setShowSelfApproveModal(true)}
-                className="flex-1 bg-amber-600 hover:bg-amber-700 text-white gap-2"
-              >
+              <Button onClick={() => setShowSelfApproveModal(true)} className="flex-1 gap-2 text-foreground" style={{ backgroundColor: "hsl(var(--gold))" }}>
                 <ShieldAlert size={16} /> Proceed on My Approval
               </Button>
             </div>
@@ -157,14 +156,14 @@ const SessionDetail = () => {
 
         {/* Approved banner */}
         {approvedBy && (
-          <div className="rounded-lg bg-emerald-900/30 border border-emerald-700/30 p-4 mb-4 text-sm text-emerald-300 flex items-center gap-2">
+          <div className="rounded-lg p-4 mb-4 text-sm flex items-center gap-2" style={{ backgroundColor: "hsl(var(--green-500) / 0.15)", color: "hsl(var(--green-300))", border: "1px solid hsl(var(--green-500) / 0.3)" }}>
             ✓ Approved by {approvedBy}
           </div>
         )}
 
         {/* Self-approved warning */}
         {selfApproved && (
-          <div className="rounded-lg bg-orange-900/30 border border-orange-700/30 p-4 mb-4 text-sm text-orange-300 flex items-center gap-2">
+          <div className="rounded-lg p-4 mb-4 text-sm flex items-center gap-2" style={{ backgroundColor: "hsl(var(--gold) / 0.15)", color: "hsl(var(--gold-light))", border: "1px solid hsl(var(--gold) / 0.3)" }}>
             <AlertTriangle size={16} /> Self-approved — flagged for compliance review
           </div>
         )}
@@ -199,17 +198,8 @@ const SessionDetail = () => {
               By proceeding, you are approving this session yourself. This will be flagged and reviewed by compliance. Are you sure?
             </p>
             <div className="flex gap-3">
-              <Button
-                variant="outline"
-                onClick={() => setShowSelfApproveModal(false)}
-                className="flex-1 border-sales-border text-sales-muted"
-              >
-                Cancel
-              </Button>
-              <Button
-                onClick={handleSelfApprove}
-                className="flex-1 bg-amber-600 hover:bg-amber-700 text-white text-xs"
-              >
+              <Button variant="outline" onClick={() => setShowSelfApproveModal(false)} className="flex-1 border-sales-border text-sales-muted">Cancel</Button>
+              <Button onClick={handleSelfApprove} className="flex-1 text-foreground text-xs" style={{ backgroundColor: "hsl(var(--gold))" }}>
                 Yes, Proceed — I Take Responsibility
               </Button>
             </div>

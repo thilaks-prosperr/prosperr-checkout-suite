@@ -28,10 +28,9 @@ const ApprovalPortal = () => {
     <button
       onClick={() => setTab(t)}
       className={`px-4 py-2 text-sm font-medium rounded-md transition-colors ${
-        tab === t
-          ? "bg-sales-accent/10 text-sales-accent"
-          : "text-sales-muted hover:text-sales-foreground"
+        tab === t ? "text-sales-accent" : "text-sales-muted hover:text-sales-foreground"
       }`}
+      style={tab === t ? { backgroundColor: "hsl(var(--green-500) / 0.1)" } : undefined}
     >
       {label}
       {count !== undefined && count > 0 && (
@@ -62,12 +61,7 @@ const ApprovalPortal = () => {
               </div>
             ) : (
               pending.map((s) => (
-                <ApprovalCard
-                  key={s.id}
-                  session={s}
-                  onApprove={handleApprove}
-                  onReject={handleReject}
-                />
+                <ApprovalCard key={s.id} session={s} onApprove={handleApprove} onReject={handleReject} />
               ))
             )}
           </div>
@@ -78,14 +72,15 @@ const ApprovalPortal = () => {
             {mockSessions.map((s) => (
               <div
                 key={s.id}
-                className="sales-card p-4 flex items-center justify-between"
+                className={`sales-card p-4 flex items-center justify-between ${s.selfApproved ? "border-l-4" : ""}`}
+                style={s.selfApproved ? { borderLeftColor: "hsl(var(--gold))" } : undefined}
               >
                 <div className="space-y-1">
                   <p className="text-sm font-medium text-sales-foreground">
                     #{getSessionShortId(s.id)} · {s.prospectName}
                   </p>
                   <p className="text-xs text-sales-muted">
-                    {s.bdaName} · {formatINR(s.payableAmount)} · {((s.discountAmount / s.planAmount) * 100).toFixed(0)}% off
+                    {s.bdaName} · {formatINR(s.payableAmount)} / {formatINR(s.planAmount)} · {((s.discountAmount / s.planAmount) * 100).toFixed(0)}% off
                   </p>
                 </div>
                 <SessionStatusChip status={s.status} selfApproved={s.selfApproved} dark />
