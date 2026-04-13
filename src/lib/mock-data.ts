@@ -36,6 +36,7 @@ export interface CheckoutSession {
   startDate: string;
   endDate: string;
   bdaName: string;
+  bdaMobile?: string;
   createdAt: string;
   expiresAt: string;
   superiors: string[];
@@ -47,13 +48,17 @@ export interface CheckoutSession {
   rejectionReason?: string;
   notes?: string;
   timeline: TimelineEvent[];
-  dependents?: { name: string; planType: string }[];
+  dependents?: { name: string; relationship: string; planType: string }[];
   isRenewal?: boolean;
+  hubspotContactId?: string;
+  hubspotSynced?: boolean;
+  hubspotLastSyncedAt?: string;
 }
 
 export interface Subscriber {
   name: string;
   mobile: string;
+  email?: string;
   plan: string;
   activeSince: string;
   expiresAt: string;
@@ -76,6 +81,39 @@ export const planOptions: PlanOption[] = [
   { id: "SS_ELITE", name: "Super Saver Elite", price: 25000, discountedPrice: 20000, minPrice: 12000, maxPrice: 25000 },
 ];
 
+export const planIncludes: Record<string, string[]> = {
+  SS_BASIC: [
+    "ITR Filing (1 source of income)",
+    "Basic Tax Planning",
+    "Email Support",
+    "Valid for 12 months",
+  ],
+  SS_PREMIUM: [
+    "ITR Filing (up to 2 sources of income)",
+    "Tax Planning & Advisory",
+    "Dedicated Tax Expert",
+    "1 Dependent filing (free)",
+    "Priority support",
+    "Valid for 12 months",
+  ],
+  SS_ELITE: [
+    "ITR Filing (unlimited sources)",
+    "Advanced Tax Planning & Advisory",
+    "Dedicated Senior Tax Expert",
+    "2 Dependent filings (free)",
+    "24/7 Priority support",
+    "Tax Audit Assistance",
+    "Valid for 12 months",
+  ],
+};
+
+export const mockHubspotContact = {
+  id: "hs-8472019",
+  name: "Ravi Kumar",
+  mobile: "8660319759",
+  email: "ravi.kumar@gmail.com",
+};
+
 export const mockSession: CheckoutSession = {
   id: "01HRX5K2J8NQPWXYZ",
   status: "AWAITING_APPROVAL",
@@ -92,6 +130,7 @@ export const mockSession: CheckoutSession = {
   startDate: "2025-04-01",
   endDate: "2026-04-01",
   bdaName: "Anjali D.",
+  bdaMobile: "9876543210",
   createdAt: new Date().toISOString(),
   expiresAt: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString(),
   superiors: ["Rahul M.", "Priya K.", "Suresh T."],
@@ -100,8 +139,11 @@ export const mockSession: CheckoutSession = {
   consumedCoins: 0,
   notes: "Client insisted on 7k. Very warm lead, ready to sign. Please approve.",
   dependents: [
-    { name: "Meera Kumar", planType: "Dependent Filing" },
+    { name: "Meera Kumar", relationship: "Spouse", planType: "Dependent Filing" },
   ],
+  hubspotContactId: "hs-8472019",
+  hubspotSynced: true,
+  hubspotLastSyncedAt: "2:41 PM",
   timeline: [
     { event: "Session created", time: "2:34 PM", status: "INITIATED" },
     { event: "OTP sent to +91 XXXXXX4759", time: "2:35 PM", status: "OTP_SENT" },
@@ -113,6 +155,7 @@ export const mockSession: CheckoutSession = {
 export const mockSubscriber: Subscriber = {
   name: "Ravi Kumar",
   mobile: "8660319759",
+  email: "ravi.kumar@gmail.com",
   plan: "Super Saver Premium",
   activeSince: "2025-03-01",
   expiresAt: "2026-03-01",
@@ -133,11 +176,14 @@ export const mockSessions: CheckoutSession[] = [
     discountAmount: 2000,
     selfApproved: false,
     approvedBy: "Rahul M.",
+    hubspotContactId: "hs-9283741",
+    hubspotSynced: true,
     timeline: [
       ...mockSession.timeline,
       { event: "Approved by Rahul M.", time: "2:37 PM", status: "APPROVED" },
       { event: "Payment link generated", time: "2:37 PM", status: "PAYMENT_LINK_GENERATED" },
       { event: "Payment completed ✓", time: "2:41 PM", status: "PAYMENT_COMPLETED" },
+      { event: "HubSpot synced ✓", time: "2:41 PM", status: "PAYMENT_COMPLETED" },
     ],
   },
   {
@@ -149,6 +195,8 @@ export const mockSessions: CheckoutSession[] = [
     selfApproved: true,
     payableAmount: 4500,
     discountAmount: 7500,
+    hubspotContactId: undefined,
+    hubspotSynced: false,
     timeline: [
       ...mockSession.timeline,
       { event: "Approval timeout", time: "2:39 PM", status: "TIMEOUT" },
@@ -163,6 +211,8 @@ export const mockSessions: CheckoutSession[] = [
     status: "DRAFT",
     payableAmount: 8000,
     discountAmount: 4000,
+    hubspotContactId: "hs-1029384",
+    hubspotSynced: false,
   },
 ];
 
@@ -178,6 +228,7 @@ export const mockPendingApprovals: CheckoutSession[] = [
     discountAmount: 8000,
     notes: "Long-time referral from existing client. Needs approval for special pricing.",
     approvalRequestedAt: new Date(Date.now() - 60000).toISOString(),
+    hubspotContactId: "hs-5738291",
   },
 ];
 
