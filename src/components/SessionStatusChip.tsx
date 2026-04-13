@@ -3,37 +3,36 @@ import { AlertTriangle } from "lucide-react";
 
 const statusConfig: Record<SessionStatus, { label: string; bg: string; text: string; dot: string; pulse?: boolean }> = {
   INITIATED: { label: "Initiated", bg: "bg-muted", text: "text-muted-foreground", dot: "bg-muted-foreground" },
-  OTP_SENT: { label: "OTP Sent", bg: "bg-blue-50", text: "text-blue-700", dot: "bg-blue-500" },
-  OTP_VERIFIED: { label: "OTP Verified", bg: "bg-blue-50", text: "text-blue-700", dot: "bg-blue-500" },
-  AWAITING_APPROVAL: { label: "Awaiting Approval", bg: "bg-amber-50", text: "text-amber-700", dot: "bg-amber-500", pulse: true },
-  APPROVED: { label: "Approved", bg: "bg-emerald-50", text: "text-emerald-700", dot: "bg-emerald-500" },
-  REJECTED: { label: "Rejected", bg: "bg-red-50", text: "text-red-700", dot: "bg-red-500" },
-  SELF_APPROVED: { label: "Self-Approved", bg: "bg-orange-50", text: "text-orange-700", dot: "bg-orange-500" },
-  PAYMENT_LINK_GENERATED: { label: "Link Generated", bg: "bg-emerald-50", text: "text-emerald-700", dot: "bg-emerald-500" },
-  PAYMENT_PENDING: { label: "Payment Pending", bg: "bg-amber-50", text: "text-amber-700", dot: "bg-amber-500", pulse: true },
-  PAYMENT_COMPLETED: { label: "Completed", bg: "bg-emerald-50", text: "text-emerald-700", dot: "bg-emerald-500" },
-  PAYMENT_FAILED: { label: "Failed", bg: "bg-red-50", text: "text-red-700", dot: "bg-red-500" },
+  OTP_SENT: { label: "OTP Sent", bg: "bg-secondary", text: "text-secondary-foreground", dot: "bg-primary-light" },
+  OTP_VERIFIED: { label: "OTP Verified", bg: "bg-secondary", text: "text-secondary-foreground", dot: "bg-primary-light" },
+  AWAITING_APPROVAL: { label: "Awaiting Approval", bg: "bg-muted", text: "text-muted-foreground", dot: "bg-prosperr-gold", pulse: true },
+  APPROVED: { label: "Approved", bg: "bg-primary-lighter", text: "text-primary", dot: "bg-primary" },
+  REJECTED: { label: "Rejected", bg: "bg-destructive/10", text: "text-destructive", dot: "bg-destructive" },
+  SELF_APPROVED: { label: "Self-Approved", bg: "bg-muted", text: "text-muted-foreground", dot: "bg-prosperr-gold" },
+  PAYMENT_LINK_GENERATED: { label: "Link Generated", bg: "bg-primary-lighter", text: "text-primary", dot: "bg-primary" },
+  PAYMENT_PENDING: { label: "Payment Pending", bg: "bg-muted", text: "text-muted-foreground", dot: "bg-prosperr-gold", pulse: true },
+  PAYMENT_COMPLETED: { label: "Completed", bg: "bg-primary-lighter", text: "text-primary", dot: "bg-primary" },
+  PAYMENT_FAILED: { label: "Failed", bg: "bg-destructive/10", text: "text-destructive", dot: "bg-destructive" },
   DRAFT: { label: "Draft", bg: "bg-muted", text: "text-muted-foreground", dot: "bg-muted-foreground" },
   EXPIRED: { label: "Expired", bg: "bg-muted", text: "text-muted-foreground", dot: "bg-muted-foreground" },
   TIMEOUT: { label: "Timeout", bg: "bg-muted", text: "text-muted-foreground", dot: "bg-muted-foreground" },
 };
 
-// Dark variant for sales portal
 const darkStatusConfig: Record<string, { bg: string; text: string; dot: string }> = {
-  INITIATED: { bg: "bg-slate-800", text: "text-slate-300", dot: "bg-slate-400" },
-  OTP_SENT: { bg: "bg-blue-900/40", text: "text-blue-300", dot: "bg-blue-400" },
-  OTP_VERIFIED: { bg: "bg-blue-900/40", text: "text-blue-300", dot: "bg-blue-400" },
-  AWAITING_APPROVAL: { bg: "bg-amber-900/40", text: "text-amber-300", dot: "bg-amber-400" },
-  APPROVED: { bg: "bg-emerald-900/40", text: "text-emerald-300", dot: "bg-emerald-400" },
+  INITIATED: { bg: "bg-prosperr-navy-600", text: "text-prosperr-gray-300", dot: "bg-prosperr-gray-400" },
+  OTP_SENT: { bg: "bg-prosperr-blue-800/40", text: "text-prosperr-blue-200", dot: "bg-prosperr-blue-200" },
+  OTP_VERIFIED: { bg: "bg-prosperr-blue-800/40", text: "text-prosperr-blue-200", dot: "bg-prosperr-blue-200" },
+  AWAITING_APPROVAL: { bg: "bg-prosperr-gold/20", text: "text-prosperr-gold-light", dot: "bg-prosperr-gold-light" },
+  APPROVED: { bg: "bg-prosperr-green-500/20", text: "text-prosperr-green-300", dot: "bg-prosperr-green-300" },
   REJECTED: { bg: "bg-red-900/40", text: "text-red-300", dot: "bg-red-400" },
-  SELF_APPROVED: { bg: "bg-orange-900/40", text: "text-orange-300", dot: "bg-orange-400" },
-  PAYMENT_LINK_GENERATED: { bg: "bg-emerald-900/40", text: "text-emerald-300", dot: "bg-emerald-400" },
-  PAYMENT_PENDING: { bg: "bg-amber-900/40", text: "text-amber-300", dot: "bg-amber-400" },
-  PAYMENT_COMPLETED: { bg: "bg-emerald-900/40", text: "text-emerald-300", dot: "bg-emerald-400" },
+  SELF_APPROVED: { bg: "bg-prosperr-gold/20", text: "text-prosperr-gold-light", dot: "bg-prosperr-gold-light" },
+  PAYMENT_LINK_GENERATED: { bg: "bg-prosperr-green-500/20", text: "text-prosperr-green-300", dot: "bg-prosperr-green-300" },
+  PAYMENT_PENDING: { bg: "bg-prosperr-gold/20", text: "text-prosperr-gold-light", dot: "bg-prosperr-gold-light" },
+  PAYMENT_COMPLETED: { bg: "bg-prosperr-green-500/20", text: "text-prosperr-green-300", dot: "bg-prosperr-green-300" },
   PAYMENT_FAILED: { bg: "bg-red-900/40", text: "text-red-300", dot: "bg-red-400" },
-  DRAFT: { bg: "bg-slate-800", text: "text-slate-300", dot: "bg-slate-400" },
-  EXPIRED: { bg: "bg-slate-800", text: "text-slate-300", dot: "bg-slate-400" },
-  TIMEOUT: { bg: "bg-slate-800", text: "text-slate-300", dot: "bg-slate-400" },
+  DRAFT: { bg: "bg-prosperr-navy-600", text: "text-prosperr-gray-300", dot: "bg-prosperr-gray-400" },
+  EXPIRED: { bg: "bg-prosperr-navy-600", text: "text-prosperr-gray-300", dot: "bg-prosperr-gray-400" },
+  TIMEOUT: { bg: "bg-prosperr-navy-600", text: "text-prosperr-gray-300", dot: "bg-prosperr-gray-400" },
 };
 
 interface SessionStatusChipProps {
@@ -54,7 +53,7 @@ const SessionStatusChip = ({ status, selfApproved, dark }: SessionStatusChipProp
       <span className={`w-1.5 h-1.5 rounded-full ${dot} ${config.pulse ? "pulse-dot" : ""}`} />
       {config.label}
       {(selfApproved || status === "SELF_APPROVED") && (
-        <AlertTriangle size={12} className="text-orange-500" />
+        <AlertTriangle size={12} className="text-prosperr-gold-light" />
       )}
     </span>
   );
