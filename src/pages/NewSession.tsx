@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import SalesNavbar from "@/components/SalesNavbar";
-import { planOptions, formatINR, mockSubscriber, mockHubspotContact, formatDate } from "@/lib/mock-data";
+import { planOptions, formatINR, mockSubscriber, mockHubspotContact, formatDate, calculateTaxBreakupFromGross } from "@/lib/mock-data";
 
 const NewSession = () => {
   const navigate = useNavigate();
@@ -19,6 +19,8 @@ const NewSession = () => {
     email: "",
     planId: "",
     payableAmount: "",
+    partialPayment: false,
+    upfrontAmount: "",
     preRenewal: false,
     notes: "",
     overrideReason: "",
@@ -33,8 +35,12 @@ const NewSession = () => {
 
   const selectedPlan = planOptions.find((p) => p.id === form.planId);
   const payable = Number(form.payableAmount) || 0;
+  const upfront = Number(form.upfrontAmount) || 0;
+  const remaining = Math.max(payable - upfront, 0);
+  const { taxableAmount, gstAmount, cgstAmount, sgstAmount } = calculateTaxBreakupFromGross(payable);
   const discount = selectedPlan ? selectedPlan.discountedPrice - payable : 0;
   const belowMin = selectedPlan ? payable < selectedPlan.minPrice : false;
+  const invalidUpfront = form.partialPayment && (upfront <= 0 || upfront >= payable);
   const hubspotThreshold = selectedPlan?.hubspotThreshold ?? 0;
   const requiresApproval = form.scenario === "BELOW_THRESHOLD";
   const isHubspotFlow = form.scenario === "HUBSPOT_DISCOUNT";
@@ -292,11 +298,19 @@ const NewSession = () => {
           {selectedPlan && (
             <>
               <div>
-                <label className="text-sm text-sales-muted mb-1 block">Custom Payable Amount</label>
+                <label className="text-sm text-sales-muted mb-1 block">Negotiated Amount (GST Inclusive)</label>
                 <Input type="number" value={form.payableAmount} onChange={(e) => setForm({ ...form, payableAmount: e.target.value })} className={`${inputClasses} ${belowMin ? "border-red-500" : ""}`} />
                 <p className="text-xs text-sales-muted mt-1">Min: {formatINR(selectedPlan.minPrice)} · Max: {formatINR(selectedPlan.maxPrice)}</p>
                 {belowMin && <p className="text-xs text-red-400 mt-1">Below minimum price — pricing issue.</p>}
                 {discount > 0 && <p className="text-xs mt-1" style={{ color: "hsl(var(--green-300))" }}>Discount: {formatINR(discount)}</p>}
+                {payable > 0 && (
+                  <div className="mt-2 rounded-md border border-sales-border px-3 py-2 text-xs text-sales-muted space-y-1">
+                    <p>Taxable amount: <span className="text-sales-foreground font-medium">{formatINR(taxableAmount)}</span></p>
+                    <p>CGST (9%): <span className="text-sales-foreground font-medium">{formatINR(cgstAmount)}</span></p>
+                    <p>SGST (9%): <span className="text-sales-foreground font-medium">{formatINR(sgstAmount)}</span></p>
+                    <p>Total GST (18%): <span className="text-sales-foreground font-medium">{formatINR(gstAmount)}</span></p>
+                  </div>
+                )}
                 {isHubspotFlow && (
                   <p className="text-xs text-sales-muted mt-1">
                     HubSpot threshold for this plan: {formatINR(hubspotThreshold)}. Current payable {formatINR(payable || 0)}.
@@ -306,6 +320,35 @@ const NewSession = () => {
                   <p className="text-xs mt-1" style={{ color: "hsl(var(--gold-light))" }}>
                     Approval required: deal is below HubSpot threshold.
                   </p>
+                )}
+              </div>
+
+              <div className="rounded-md border border-sales-border px-3 py-2">
+                <label className="flex items-center gap-2 text-sm text-sales-foreground cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={form.partialPayment}
+                    onChange={(e) => setForm({ ...form, partialPayment: e.target.checked, upfrontAmount: "" })}
+                    className="accent-sales-accent"
+                  />
+                  Enable Partial Payment
+                </label>
+                {form.partialPayment && (
+                  <div className="mt-2 space-y-1">
+                    <label className="text-xs text-sales-muted block">Pay Now Amount (out of {formatINR(payable)})</label>
+                    <Input
+                      type="number"
+                      value={form.upfrontAmount}
+                      onChange={(e) => setForm({ ...form, upfrontAmount: e.target.value })}
+                      className={`${inputClasses} ${invalidUpfront ? "border-red-500" : ""}`}
+                    />
+                    {invalidUpfront ? (
+                      <p className="text-xs text-red-400">Upfront amount must be greater than 0 and less than negotiated amount.</p>
+                    ) : (
+                      <p className="text-xs text-sales-muted">Remaining: <span className="text-sales-foreground font-medium">{formatINR(remaining)}</span></p>
+                    )}
+                    <p className="text-xs text-sales-muted">Invoice should be generated only after full settlement is complete.</p>
+                  </div>
                 )}
               </div>
             </>
@@ -320,7 +363,7 @@ const NewSession = () => {
             Session validity is defaulted to 24 hours from creation.
           </p>
 
-          <Button onClick={handleSubmit} disabled={!form.name || !form.mobile || !form.planId || loading || showExistingBanner || showActiveSessionBanner} className="w-full h-12 bg-sales-accent text-sales-accent-foreground hover:bg-sales-accent/90 gap-2 mt-4">
+          <Button onClick={handleSubmit} disabled={!form.name || !form.mobile || !form.planId || loading || showExistingBanner || showActiveSessionBanner || invalidUpfront} className="w-full h-12 bg-sales-accent text-sales-accent-foreground hover:bg-sales-accent/90 gap-2 mt-4">
             {loading ? <span className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" /> : <Send size={16} />}
             {loading
               ? "Creating..."

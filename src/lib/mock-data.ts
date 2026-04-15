@@ -33,8 +33,12 @@ export interface CheckoutSession {
   categoryId: string;
   categoryName: string;
   planAmount: number;
+  negotiatedAmount: number; // GST inclusive negotiated figure from sales
+  taxableAmount: number; // amount before GST
   payableAmount: number;
   discountAmount: number;
+  cgstAmount: number;
+  sgstAmount: number;
   gstAmount: number;
   validity: string;
   startDate: string;
@@ -64,6 +68,10 @@ export interface CheckoutSession {
   hubspotLastSyncedAt?: string;
   existingCustomerFound?: boolean;
   overrideReason?: string;
+  paymentMode: "FULL" | "PARTIAL";
+  payNowAmount: number;
+  remainingAmount: number;
+  invoiceGenerated: boolean;
 }
 
 export interface Subscriber {
@@ -137,9 +145,13 @@ export const mockSession: CheckoutSession = {
   categoryId: "SS_PREMIUM",
   categoryName: "Super Saver Premium",
   planAmount: 12000,
+  negotiatedAmount: 7000,
+  taxableAmount: 5932.2,
   payableAmount: 7000,
   discountAmount: 5000,
-  gstAmount: 1068,
+  cgstAmount: 533.9,
+  sgstAmount: 533.9,
+  gstAmount: 1067.8,
   validity: "1 year",
   startDate: "2025-04-01",
   endDate: "2026-04-01",
@@ -162,6 +174,10 @@ export const mockSession: CheckoutSession = {
   hubspotSyncStatus: "LINKED",
   hubspotLastSyncedAt: "2:41 PM",
   existingCustomerFound: true,
+  paymentMode: "PARTIAL",
+  payNowAmount: 2000,
+  remainingAmount: 5000,
+  invoiceGenerated: false,
   timeline: [
     { event: "Session created", time: "2:34 PM", status: "INITIATED" },
     { event: "OTP sent to +91 XXXXXX4759", time: "2:35 PM", status: "OTP_SENT" },
@@ -193,7 +209,16 @@ export const mockSessions: CheckoutSession[] = [
     flowType: "INORGANIC_HUBSPOT",
     source: "HUBSPOT",
     payableAmount: 10000,
+    negotiatedAmount: 10000,
+    taxableAmount: 8474.58,
     discountAmount: 2000,
+    cgstAmount: 762.71,
+    sgstAmount: 762.71,
+    gstAmount: 1525.42,
+    paymentMode: "FULL",
+    payNowAmount: 10000,
+    remainingAmount: 0,
+    invoiceGenerated: true,
     selfApproved: false,
     approvedBy: "Rahul M.",
     hubspotContactId: "hs-9283741",
@@ -233,7 +258,16 @@ export const mockSessions: CheckoutSession[] = [
     selfApproved: true,
     selfApprovalReason: "Superior unavailable during customer call. Client requested immediate completion.",
     payableAmount: 4500,
+    negotiatedAmount: 4500,
+    taxableAmount: 3813.56,
     discountAmount: 7500,
+    cgstAmount: 343.22,
+    sgstAmount: 343.22,
+    gstAmount: 686.44,
+    paymentMode: "FULL",
+    payNowAmount: 4500,
+    remainingAmount: 0,
+    invoiceGenerated: false,
     hubspotContactId: undefined,
     hubspotSyncStatus: "NOT_LINKED",
     timeline: [
@@ -251,7 +285,16 @@ export const mockSessions: CheckoutSession[] = [
     flowType: "RENEWAL",
     source: "SALES_PORTAL",
     payableAmount: 8000,
+    negotiatedAmount: 8000,
+    taxableAmount: 6779.66,
     discountAmount: 4000,
+    cgstAmount: 610.17,
+    sgstAmount: 610.17,
+    gstAmount: 1220.34,
+    paymentMode: "FULL",
+    payNowAmount: 8000,
+    remainingAmount: 0,
+    invoiceGenerated: false,
     hubspotContactId: "hs-1029384",
     hubspotSyncStatus: "RETRY_QUEUED",
     notes: "Saved as draft by BDA due to customer unavailability on call.",
@@ -305,4 +348,13 @@ export function formatDate(dateStr: string): string {
 
 export function getSessionShortId(id: string): string {
   return id.slice(-8).toUpperCase();
+}
+
+export function calculateTaxBreakupFromGross(grossAmount: number) {
+  const normalized = Number.isFinite(grossAmount) ? Math.max(grossAmount, 0) : 0;
+  const taxableAmount = Number((normalized / 1.18).toFixed(2));
+  const gstAmount = Number((normalized - taxableAmount).toFixed(2));
+  const cgstAmount = Number((gstAmount / 2).toFixed(2));
+  const sgstAmount = Number((gstAmount / 2).toFixed(2));
+  return { taxableAmount, gstAmount, cgstAmount, sgstAmount };
 }

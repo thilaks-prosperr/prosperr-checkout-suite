@@ -52,6 +52,21 @@ This section defines canonical terms used by frontend, backend, and DB.
 - `WITHIN_THRESHOLD`: payable >= plan threshold floor and below full.
 - `BELOW_THRESHOLD`: payable < threshold floor; approval required.
 
+### 1.4.1 GST and Negotiation Rule (Binding)
+
+- Sales negotiation amount is always **GST-inclusive** (`gross_negotiated_amount`).
+- Backend/system must derive:
+  - `taxable_amount = gross_negotiated_amount / 1.18`
+  - `total_gst_amount = gross_negotiated_amount - taxable_amount`
+  - `cgst_amount = total_gst_amount / 2`
+  - `sgst_amount = total_gst_amount / 2`
+- UI must display all 4 values (gross, taxable, CGST, SGST).
+- Example:
+  - negotiated amount = `7000`
+  - taxable = `5932.20`
+  - CGST = `533.90`
+  - SGST = `533.90`
+
 ### 1.5 Session Terms
 
 - `ASSISTED_SESSION`: tracked sales-linked payment journey.
@@ -87,8 +102,9 @@ This section defines canonical terms used by frontend, backend, and DB.
 1. Verify mobile (`OTP required before payment`).
 2. Review plan, customer details, renewal/dependent details.
 3. Optionally apply coins (**user side only**).
-4. Pay via session link.
+4. If partial enabled, user pays current installment via session link.
 5. Receive success/failure status and next-step messaging.
+6. Invoice visibility must be gated by full settlement.
 
 ### 2.3 User Permissions
 
@@ -96,7 +112,8 @@ This section defines canonical terms used by frontend, backend, and DB.
   - OTP verification,
   - payment attempt/retry via valid link,
   - view details and dependents,
-  - coins apply toggle (where eligible).
+  - coins apply toggle (where eligible),
+  - partial payment settlement view (pay-now vs remaining).
 - Not allowed:
   - edit payable amount/price/approval policy fields,
   - edit sales-owned customer profile fields directly.
@@ -106,6 +123,9 @@ This section defines canonical terms used by frontend, backend, and DB.
 - If session `DRAFT`: show draft reason and escalation guidance.
 - If session `EXPIRED`: show sales/support contact path.
 - If `SELF_APPROVED`: no panic copy; standard payment flow with internal audit flag only.
+- If `PARTIAL` payment succeeded:
+  - show remaining due amount,
+  - clearly show "Invoice will be generated after full payment".
 
 ---
 
@@ -132,12 +152,15 @@ Sales portal must let BDA quickly:
 - Session can be HubSpot-linked or sales-created.
 - No approval required.
 - Payment status should sync via backend tracked path.
+- Negotiated price entered by sales must be treated as GST-inclusive.
+- Sales may enable partial payment (`pay now` + `remaining`).
 
 #### C) Below Threshold
 
 - Assisted session required.
 - Approval required before first link generation.
 - Timeout branch: draft (with reason) or self-approval (flagged).
+- Same GST-inclusive and partial-payment rules apply.
 
 ### 3.3 Sales Guardrails
 
@@ -146,6 +169,9 @@ Sales portal must let BDA quickly:
   - recommend renewal path,
   - allow continue-as-new only with override reason.
 - One active session per prospect/mobile invariant (enforced backend-side).
+- Upfront amount (if partial) must be:
+  - `> 0`
+  - `< negotiated gross amount`
 
 ### 3.4 Renewal Inputs
 
@@ -210,6 +236,9 @@ Additional binding rules:
 - One active assisted session per prospect/mobile.
 - Price cannot be edited post approval decision.
 - Session validity defaults to 24h unless explicit policy override.
+- Negotiated amount entered by sales is GST-inclusive in all scenarios.
+- Partial payment is allowed in all scenarios by policy.
+- Invoice is generated only when session/payment reaches full settlement.
 
 ---
 
@@ -241,7 +270,8 @@ Required fields:
   - `prospectName`, `prospectMobile`, `prospectEmail`, `alternateMobile`
 - Plan/Pricing:
   - `categoryId`, `categoryName`, `planAmount`, `payableAmount`,
-  - `discountAmount`, `gstAmount`, `thresholdAmount`, `priceBand`
+  - `discountAmount`, `gstAmount`, `cgstAmount`, `sgstAmount`,
+  - `taxableAmount`, `negotiatedAmount`, `thresholdAmount`, `priceBand`
 - Renewal:
   - `renewalStartDate`, `renewalEndDate`, `renewalBasis`
 - Approval:
@@ -250,7 +280,8 @@ Required fields:
   - `selfApproved`, `selfApprovalReason`
 - Payment:
   - `purchaseId`, `latestTransactionId`, `paymentStatus`,
-  - `currentPaymentLink`, `currentLinkVersion`, `lastLinkGeneratedAt`
+  - `currentPaymentLink`, `currentLinkVersion`, `lastLinkGeneratedAt`,
+  - `paymentMode`, `payNowAmount`, `remainingAmount`, `isFullySettled`, `invoiceGenerated`
 - HubSpot:
   - `hubspotContactId`, `hubspotDealId`, `hubspotOwnerId`,
   - `hubspotSyncStatus`, `hubspotSyncError`, `hubspotLastSyncedAt`
@@ -303,6 +334,9 @@ Target backend root:
 - `POST /assisted-checkout/sessions/{sessionId}/timeout/save-draft`
 - `POST /assisted-checkout/sessions/{sessionId}/timeout/self-approve`
 - `POST /assisted-checkout/sessions/{sessionId}/payment-links/generate`
+- `POST /assisted-checkout/sessions/{sessionId}/payments/mark-partial`
+- `POST /assisted-checkout/sessions/{sessionId}/payments/mark-full`
+- `GET /assisted-checkout/sessions/{sessionId}/invoice`
 - `GET /assisted-checkout/sessions/{sessionId}/timeline`
 - `POST /assisted-checkout/hubspot/events` (idempotent inbound)
 - `POST /assisted-checkout/renewal-queue/run` (admin/manual trigger)
@@ -339,8 +373,12 @@ Suggested columns:
 - `alternate_mobile`
 - `category_id`
 - `plan_amount` (numeric)
+ - `negotiated_amount` (numeric, GST-inclusive)
+ - `taxable_amount` (numeric)
 - `payable_amount` (numeric)
 - `discount_amount` (numeric)
+ - `cgst_amount` (numeric)
+ - `sgst_amount` (numeric)
 - `gst_amount` (numeric)
 - `threshold_amount` (numeric)
 - `price_band` (`FULL_PRICE|WITHIN_THRESHOLD|BELOW_THRESHOLD`)
@@ -350,6 +388,11 @@ Suggested columns:
 - `status` (enum from 6.1)
 - `purchase_id`
 - `latest_transaction_id`
+ - `payment_mode` (`FULL|PARTIAL`)
+ - `pay_now_amount` (numeric)
+ - `remaining_amount` (numeric)
+ - `is_fully_settled` (boolean)
+ - `invoice_generated` (boolean)
 - `current_payment_link` (text)
 - `current_link_version` (int, default 0)
 - `hubspot_contact_id`
@@ -504,6 +547,28 @@ Indexes:
 - `idx_renewal_queue_bucket_status (window_bucket, assignment_status)`
 - `idx_renewal_queue_assigned_to (assigned_to_bda_id, assignment_status)`
 
+### 8.9 `assisted_payment_installments` (new)
+
+Optional ledger table for partial settlement entries.
+
+Columns:
+
+- `id` (PK)
+- `session_id` (FK)
+- `installment_no` (int)
+- `gross_amount` (numeric)
+- `taxable_amount` (numeric)
+- `cgst_amount` (numeric)
+- `sgst_amount` (numeric)
+- `status` (`PENDING|PAID|FAILED`)
+- `transaction_id`
+- `paid_at`
+- `created_at`
+
+Constraint:
+
+- unique `(session_id, installment_no)`.
+
 ---
 
 ## 9) Backend Gaps and Required Closures
@@ -562,6 +627,9 @@ Indexes:
 - Organic users remain in normal checkout path.
 - Assisted checkout is for sales-linked sessions.
 - Coins can be applied by user at checkout; not from sales form.
+- Negotiated amount from sales is GST-inclusive.
+- Partial payment is supported across scenarios.
+- Invoice generation is allowed only after full settlement.
 - Below-threshold requires approval flow.
 - Timeout allows draft or self-approval; both audited.
 - Renewal anchor is existing expiry date.
@@ -846,11 +914,15 @@ flowchart TD
   F --> G[Show plan details]
   G --> H[Show profile/dependents read-only]
   H --> I[Optional: apply coins on user side]
-  I --> J[Proceed to payment]
-  J --> K[Payment status pending]
-  K --> L{Terminal status}
-  L -->|Success| M[Success state + next steps]
-  L -->|Failed| N[Failure state + retry]
+  I --> J{Payment mode}
+  J -->|FULL| K[Proceed to full payment]
+  J -->|PARTIAL| L[Proceed to installment payment]
+  K --> M[Payment status pending]
+  L --> M
+  M --> N{Terminal status}
+  N -->|Success + full| O[Show invoice generated]
+  N -->|Success + partial| P[Show remaining due and no invoice yet]
+  N -->|Failed| Q[Failure state + retry]
 ```
 
 ## 12.12 Dependent/Family Add-on Journey (Planned)

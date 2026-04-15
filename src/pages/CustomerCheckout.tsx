@@ -54,8 +54,11 @@ const CustomerCheckout = () => {
   const isExpired = session.status === "EXPIRED";
   const isRejected = session.status === "REJECTED";
   const shouldBlockPayment = isDraft || isExpired || isRejected;
-  const coinDeduction = useCoins ? Math.min(session.coinBalance, session.payableAmount) : 0;
-  const finalPayableAmount = Math.max(session.payableAmount - coinDeduction, 0);
+  const isPartial = session.paymentMode === "PARTIAL";
+  const grossForCurrentStep = isPartial ? session.payNowAmount : session.payableAmount;
+  const coinDeduction = useCoins ? Math.min(session.coinBalance, grossForCurrentStep) : 0;
+  const finalPayableAmount = Math.max(grossForCurrentStep - coinDeduction, 0);
+  const remainingAfterCurrentPayment = Math.max(session.remainingAmount - coinDeduction, 0);
 
   const currentStepIndex = steps.findIndex(s => s.key === step);
 
@@ -306,7 +309,15 @@ const CustomerCheckout = () => {
                   {session.discountAmount > 0 && (
                     <p className="text-sm font-medium text-primary">You save {formatINR(session.discountAmount)}</p>
                   )}
-                  <p className="text-xs text-muted-foreground">Includes 18% GST ({formatINR(session.gstAmount)})</p>
+                  <p className="text-xs text-muted-foreground">Negotiated amount (GST inclusive): {formatINR(session.negotiatedAmount)}</p>
+                  <p className="text-xs text-muted-foreground">Taxable amount: {formatINR(session.taxableAmount)}</p>
+                  <p className="text-xs text-muted-foreground">CGST (9%): {formatINR(session.cgstAmount)} · SGST (9%): {formatINR(session.sgstAmount)}</p>
+                  <p className="text-xs text-muted-foreground">Total GST (18%): {formatINR(session.gstAmount)}</p>
+                  {isPartial && (
+                    <p className="text-xs text-amber-700">
+                      Partial payment enabled: pay now {formatINR(session.payNowAmount)} and remaining {formatINR(session.remainingAmount)} later.
+                    </p>
+                  )}
                 </div>
 
                 {/* Dependents - expandable */}
@@ -362,10 +373,13 @@ const CustomerCheckout = () => {
 
               {/* Total Payable */}
               <div className="bg-muted rounded-lg p-4 text-center">
-                <p className="text-sm text-muted-foreground">Total Payable</p>
+                <p className="text-sm text-muted-foreground">{isPartial ? "Pay Now" : "Total Payable"}</p>
                 <p className="text-3xl font-bold text-foreground">{formatINR(finalPayableAmount)}</p>
                 {paymentAttempts > 0 && (
                   <p className="text-xs text-muted-foreground mt-1">Attempt #{paymentAttempts}</p>
+                )}
+                {isPartial && (
+                  <p className="text-xs text-muted-foreground mt-1">Remaining after this payment: {formatINR(remainingAfterCurrentPayment)}</p>
                 )}
               </div>
 
@@ -377,7 +391,7 @@ const CustomerCheckout = () => {
                   </span>
                 ) : (
                   <>
-                    <CreditCard size={20} className="mr-2" /> Pay Now
+                    <CreditCard size={20} className="mr-2" /> {isPartial ? `Pay ${formatINR(finalPayableAmount)} Now` : "Pay Now"}
                   </>
                 )}
               </Button>
@@ -410,13 +424,23 @@ const CustomerCheckout = () => {
                 </div>
               </motion.div>
               <div>
-                <h1 className="text-2xl font-bold text-foreground">Payment Successful 🎉</h1>
+                <h1 className="text-2xl font-bold text-foreground">
+                  {isPartial && remainingAfterCurrentPayment > 0 ? "Partial Payment Successful 🎉" : "Payment Successful 🎉"}
+                </h1>
                 <p className="text-muted-foreground mt-1">{formatINR(finalPayableAmount)} paid · TXN: PRS{Date.now().toString().slice(-8)}</p>
               </div>
               <div className="bg-primary-lighter rounded-lg p-5 text-left space-y-3">
                 <h3 className="font-semibold text-foreground">What's next?</h3>
                 <div className="space-y-2">
-                  {["You'll receive a confirmation email with your invoice", "Our team will reach out to complete your account setup", "You'll get access to Super Saver within 24 hours"].map((text, i) => (
+                  {[
+                    isPartial && remainingAfterCurrentPayment > 0
+                      ? "Invoice will be generated only after full payment is completed."
+                      : "You'll receive a confirmation email with your invoice",
+                    isPartial && remainingAfterCurrentPayment > 0
+                      ? `Remaining due: ${formatINR(remainingAfterCurrentPayment)}`
+                      : "Our team will reach out to complete your account setup",
+                    "You'll get access to Super Saver within 24 hours",
+                  ].map((text, i) => (
                     <div key={i} className="flex gap-2">
                       <span className="w-6 h-6 rounded-full bg-primary/10 flex items-center justify-center shrink-0 text-xs font-bold text-primary">{i + 1}</span>
                       <p className="text-sm text-foreground">{text}</p>

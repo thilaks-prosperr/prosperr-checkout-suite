@@ -93,7 +93,17 @@ const SessionDetail = () => {
             <span className="text-sales-foreground">{session.categoryName}</span>
             <span className="text-sales-muted">Amount</span>
             <span className="text-sales-foreground font-semibold">
-              {formatINR(session.payableAmount)} / {formatINR(session.planAmount)}
+              {formatINR(session.negotiatedAmount)} (incl GST) / {formatINR(session.planAmount)}
+            </span>
+            <span className="text-sales-muted">Taxable</span>
+            <span className="text-sales-foreground">{formatINR(session.taxableAmount)}</span>
+            <span className="text-sales-muted">GST Split</span>
+            <span className="text-sales-foreground">CGST {formatINR(session.cgstAmount)} + SGST {formatINR(session.sgstAmount)}</span>
+            <span className="text-sales-muted">Payment Mode</span>
+            <span className="text-sales-foreground">
+              {session.paymentMode === "PARTIAL"
+                ? `PARTIAL (Now ${formatINR(session.payNowAmount)}, Remaining ${formatINR(session.remainingAmount)})`
+                : "FULL"}
             </span>
           </div>
         </div>
