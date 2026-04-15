@@ -1,23 +1,25 @@
-import { Leaf } from "lucide-react";
-
 interface ProsperrLogoProps {
   variant?: "default" | "white";
   size?: "sm" | "md" | "lg";
 }
 
 const ProsperrLogo = ({ variant = "default", size = "md" }: ProsperrLogoProps) => {
-  const sizeClasses = {
+  const sizeClasses: Record<NonNullable<ProsperrLogoProps["size"]>, string> = {
+    sm: "h-6",
+    md: "h-8",
+    lg: "h-10",
+  };
+  const textClasses: Record<NonNullable<ProsperrLogoProps["size"]>, string> = {
     sm: "text-lg",
     md: "text-2xl",
     lg: "text-3xl",
   };
-  const iconSizes = { sm: 16, md: 20, lg: 24 };
-  const colorClass = variant === "white" ? "text-sales-foreground" : "text-primary";
+  const colorClass = variant === "white" ? "text-sales-foreground" : "text-foreground";
 
   return (
-    <div className={`flex items-center gap-1.5 font-bold ${sizeClasses[size]} ${colorClass}`}>
-      <Leaf size={iconSizes[size]} className="text-primary-light" />
-      <span>Prosperr</span>
+    <div className={`flex items-center gap-2 font-bold ${colorClass}`}>
+      <img src="/prosperr-logo.svg" alt="Prosperr logo" className={sizeClasses[size]} />
+      <span className={textClasses[size]}>Prosperr</span>
     </div>
   );
 };

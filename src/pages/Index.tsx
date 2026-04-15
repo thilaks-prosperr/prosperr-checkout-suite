@@ -1,7 +1,6 @@
 import { Link } from "react-router-dom";
 import ProsperrLogo from "@/components/ProsperrLogo";
-import { Button } from "@/components/ui/button";
-import { CreditCard, Users, ShieldCheck } from "lucide-react";
+import { CreditCard, Users } from "lucide-react";
 
 const Index = () => {
   return (
@@ -12,7 +11,7 @@ const Index = () => {
         Payment collection system for the Super Saver product
       </p>
 
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 w-full max-w-2xl">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 w-full max-w-xl">
         <Link to="/checkout" className="block">
           <div className="border border-border rounded-lg p-6 text-center hover:border-primary/40 transition-colors space-y-3">
             <CreditCard size={28} className="mx-auto text-primary" />
@@ -25,13 +24,6 @@ const Index = () => {
             <Users size={28} className="mx-auto text-primary" />
             <h3 className="font-semibold text-foreground">Sales Portal</h3>
             <p className="text-xs text-muted-foreground">BDA / CSR dashboard</p>
-          </div>
-        </Link>
-        <Link to="/approval" className="block">
-          <div className="border border-border rounded-lg p-6 text-center hover:border-primary/40 transition-colors space-y-3">
-            <ShieldCheck size={28} className="mx-auto text-primary" />
-            <h3 className="font-semibold text-foreground">Approvals</h3>
-            <p className="text-xs text-muted-foreground">Superior approval portal</p>
           </div>
         </Link>
       </div>

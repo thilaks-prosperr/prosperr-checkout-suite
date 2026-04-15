@@ -5,7 +5,16 @@ import ProsperrLogo from "@/components/ProsperrLogo";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 
-const SalesLogin = ({ onLogin }: { onLogin: () => void }) => {
+const SUPERVISOR_EMAILS = new Set([
+  "a@prosperr.io",
+  "b@prosperr.io",
+  "c@prosperr.io",
+  "d@prosperr.io",
+  "e@prosperr.io",
+  "f@prosperr.io",
+]);
+
+const SalesLogin = ({ onLogin }: { onLogin: (role?: "bda" | "superior") => void }) => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPw, setShowPw] = useState(false);
@@ -15,7 +24,8 @@ const SalesLogin = ({ onLogin }: { onLogin: () => void }) => {
     setLoading(true);
     setTimeout(() => {
       setLoading(false);
-      onLogin();
+      const role: "bda" | "superior" = SUPERVISOR_EMAILS.has(email.trim().toLowerCase()) ? "superior" : "bda";
+      onLogin(role);
     }, 1000);
   };
 
@@ -23,7 +33,9 @@ const SalesLogin = ({ onLogin }: { onLogin: () => void }) => {
     <div className="sales-portal flex items-center justify-center p-6">
       <div className="w-full max-w-sm space-y-8">
         <div className="text-center space-y-2">
-          <ProsperrLogo variant="white" size="lg" />
+          <div className="flex justify-center">
+            <ProsperrLogo variant="white" size="lg" />
+          </div>
           <h1 className="text-xl font-bold text-sales-foreground mt-4">Sales Portal</h1>
           <p className="text-sm text-sales-muted">For BDA / CSR use only</p>
         </div>

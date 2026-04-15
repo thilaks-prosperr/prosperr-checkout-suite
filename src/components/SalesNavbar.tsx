@@ -1,5 +1,5 @@
 import { Link, useLocation } from "react-router-dom";
-import { LayoutDashboard, ClipboardCheck, User, LogOut } from "lucide-react";
+import { LayoutDashboard, User, LogOut } from "lucide-react";
 import ProsperrLogo from "@/components/ProsperrLogo";
 
 interface SalesNavbarProps {
@@ -9,14 +9,9 @@ interface SalesNavbarProps {
 const SalesNavbar = ({ role }: SalesNavbarProps) => {
   const location = useLocation();
 
-  const bdaLinks: { to: string; label: string; icon: typeof LayoutDashboard; badge?: number }[] = [
+  const links: { to: string; label: string; icon: typeof LayoutDashboard; badge?: number }[] = [
     { to: "/checkout/sales", label: "Sessions", icon: LayoutDashboard },
-    { to: "/approval", label: "Approvals", icon: ClipboardCheck },
   ];
-  const superiorLinks: { to: string; label: string; icon: typeof LayoutDashboard; badge?: number }[] = [
-    { to: "/approval", label: "Pending Approvals", icon: ClipboardCheck, badge: 2 },
-  ];
-  const links = role === "bda" ? bdaLinks : superiorLinks;
 
   return (
     <nav className="border-b border-sales-border px-6 py-3 flex items-center justify-between">
@@ -48,7 +43,7 @@ const SalesNavbar = ({ role }: SalesNavbarProps) => {
       <div className="flex items-center gap-3">
         <div className="flex items-center gap-2 text-sales-muted">
           <User size={16} />
-          <span className="text-sm">{role === "bda" ? "Anjali D." : "Rahul M."}</span>
+          <span className="text-sm">{role === "bda" ? "Sales Rep" : "Supervisor"}</span>
         </div>
         <Link to="/checkout/sales" className="text-sales-muted hover:text-sales-foreground">
           <LogOut size={16} />

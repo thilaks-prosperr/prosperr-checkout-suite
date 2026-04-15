@@ -7,8 +7,8 @@
 @layer base {
   :root {
     /* Prosperr brand tokens */
-    --green-900: 149 100% 28%;
-    --green-700: 148 83% 33%;
+    --green-900: 143 97% 23%;
+    --green-700: 98 39% 56%;
     --green-500: 143 78% 41%;
     --green-300: 147 70% 56%;
     --green-100: 147 94% 71%;
@@ -23,7 +23,7 @@
     --navy-400: 212 27% 27%;
 
     --blue-800: 233 79% 24%;
-    --blue-700: 233 76% 25%;
+    --blue-700: 205 88% 37%;
     --blue-600: 227 49% 26%;
     --blue-500: 224 33% 27%;
     --blue-200: 218 53% 90%;
@@ -31,11 +31,11 @@
     --blue-50: 236 45% 95%;
 
     --white: 0 0% 100%;
-    --off-white: 45 20% 95%;
+    --off-white: 0 0% 98%;
     --gray-800: 210 2% 13%;
     --gray-700: 0 0% 12%;
-    --gray-500: 60 1% 29%;
-    --gray-400: 217 14% 47%;
+    --gray-500: 0 0% 50%;
+    --gray-400: 0 0% 50%;
     --gray-300: 222 14% 70%;
     --gray-200: 0 0% 82%;
     --gray-100: 0 0% 86%;
@@ -56,9 +56,9 @@
     --primary-foreground: var(--white);
     --primary-light: var(--green-500);
     --primary-lighter: var(--green-50);
-    --secondary: var(--blue-100);
-    --secondary-foreground: var(--gray-800);
-    --muted: var(--blue-50);
+    --secondary: var(--blue-700);
+    --secondary-foreground: var(--white);
+    --muted: var(--white);
     --muted-foreground: var(--gray-400);
     --accent: var(--green-500);
     --accent-foreground: var(--white);
@@ -69,12 +69,12 @@
     --ring: var(--green-700);
     --radius: 0.75rem;
 
-    /* Sales portal dark theme tokens */
-    --sales-bg: var(--navy-950);
-    --sales-surface: var(--navy-800);
-    --sales-surface-hover: var(--navy-600);
-    --sales-border: var(--navy-500);
-    --sales-foreground: var(--off-white);
+    /* Sales portal light theme tokens */
+    --sales-bg: var(--white);
+    --sales-surface: var(--white);
+    --sales-surface-hover: var(--blue-50);
+    --sales-border: var(--gray-100);
+    --sales-foreground: var(--gray-800);
     --sales-muted: var(--gray-400);
     --sales-accent: var(--green-500);
     --sales-accent-foreground: var(--white);
@@ -90,33 +90,33 @@
   }
 
   .dark {
-    --background: var(--navy-950);
-    --foreground: var(--off-white);
-    --card: var(--navy-800);
-    --card-foreground: var(--off-white);
-    --popover: var(--navy-800);
-    --popover-foreground: var(--off-white);
-    --primary: var(--green-500);
+    --background: var(--white);
+    --foreground: var(--gray-800);
+    --card: var(--white);
+    --card-foreground: var(--gray-800);
+    --popover: var(--white);
+    --popover-foreground: var(--gray-800);
+    --primary: var(--green-700);
     --primary-foreground: var(--white);
-    --secondary: var(--navy-600);
-    --secondary-foreground: var(--off-white);
-    --muted: var(--navy-600);
+    --secondary: var(--blue-100);
+    --secondary-foreground: var(--gray-800);
+    --muted: var(--blue-50);
     --muted-foreground: var(--gray-400);
     --accent: var(--green-500);
     --accent-foreground: var(--white);
-    --destructive: 0 63% 31%;
-    --destructive-foreground: var(--off-white);
-    --border: var(--navy-500);
-    --input: var(--navy-500);
-    --ring: var(--green-500);
-    --sidebar-background: var(--navy-950);
-    --sidebar-foreground: var(--off-white);
-    --sidebar-primary: var(--green-500);
+    --destructive: 0 84% 60%;
+    --destructive-foreground: var(--white);
+    --border: var(--gray-100);
+    --input: var(--gray-100);
+    --ring: var(--green-700);
+    --sidebar-background: var(--white);
+    --sidebar-foreground: var(--gray-800);
+    --sidebar-primary: var(--green-700);
     --sidebar-primary-foreground: var(--white);
-    --sidebar-accent: var(--navy-600);
-    --sidebar-accent-foreground: var(--off-white);
-    --sidebar-border: var(--navy-500);
-    --sidebar-ring: var(--green-500);
+    --sidebar-accent: var(--blue-50);
+    --sidebar-accent-foreground: var(--gray-800);
+    --sidebar-border: var(--gray-100);
+    --sidebar-ring: var(--green-700);
   }
 }
 

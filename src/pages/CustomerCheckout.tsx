@@ -7,7 +7,7 @@ import OtpInput from "@/components/OtpInput";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
-import { mockSession, formatINR, maskMobile, formatDate, planIncludes } from "@/lib/mock-data";
+import { mockSession, mockSessions, formatINR, maskMobile, formatDate, planIncludes } from "@/lib/mock-data";
 
 type Step = "mobile" | "otp" | "plan" | "success" | "failed";
 
@@ -34,9 +34,28 @@ const CustomerCheckout = () => {
   const [showEditSheet, setShowEditSheet] = useState(false);
   const [dependentsOpen, setDependentsOpen] = useState(false);
   const [planDetailsOpen, setPlanDetailsOpen] = useState(false);
+  const [paymentAttempts, setPaymentAttempts] = useState(0);
+  const [useCoins, setUseCoins] = useState(false);
 
-  const session = mockSession;
+  const session = sessionId
+    ? mockSessions.find((s) => s.id === sessionId) || mockSession
+    : {
+        ...mockSession,
+        id: "ORGANIC_CHECKOUT",
+        source: "WEBSITE" as const,
+        flowType: "ORGANIC" as const,
+        status: "INITIATED" as const,
+        payableAmount: 10000,
+        discountAmount: 2000,
+      };
   const isPrefilled = !!urlMobile;
+  const isAssisted = Boolean(sessionId);
+  const isDraft = session.status === "DRAFT";
+  const isExpired = session.status === "EXPIRED";
+  const isRejected = session.status === "REJECTED";
+  const shouldBlockPayment = isDraft || isExpired || isRejected;
+  const coinDeduction = useCoins ? Math.min(session.coinBalance, session.payableAmount) : 0;
+  const finalPayableAmount = Math.max(session.payableAmount - coinDeduction, 0);
 
   const currentStepIndex = steps.findIndex(s => s.key === step);
 
@@ -70,6 +89,7 @@ const CustomerCheckout = () => {
 
   const handlePay = useCallback(() => {
     setLoading(true);
+    setPaymentAttempts((prev) => prev + 1);
     setTimeout(() => {
       setLoading(false);
       setStep(Math.random() > 0.2 ? "success" : "failed");
@@ -99,8 +119,27 @@ const CustomerCheckout = () => {
           <ProsperrLogo size="lg" />
         </div>
 
+        {/* Session state alerts for assisted flows */}
+        {isAssisted && isDraft && (
+          <div className="mb-5 rounded-lg border border-amber-300 bg-amber-50 p-3 text-amber-800 text-sm">
+            This session was saved as draft by your sales rep.
+            <div className="mt-1 text-xs">Reason: {session.notes || "No reason shared"}. Please contact your sales rep or raise a support ticket.</div>
+          </div>
+        )}
+        {isAssisted && isExpired && (
+          <div className="mb-5 rounded-lg border border-red-300 bg-red-50 p-3 text-red-700 text-sm">
+            This session has expired. Please contact your sales rep to continue.
+          </div>
+        )}
+        {isAssisted && isRejected && (
+          <div className="mb-5 rounded-lg border border-red-300 bg-red-50 p-3 text-red-700 text-sm">
+            This session was rejected by supervisor approval policy.
+            <div className="mt-1 text-xs">{session.rejectionReason || "Please contact your sales rep for next steps."}</div>
+          </div>
+        )}
+
         {/* Step Indicator */}
-        {step !== "failed" && (
+        {step !== "failed" && !shouldBlockPayment && (
           <div className="flex items-center justify-center gap-2 mb-8">
             {steps.map((s, i) => (
               <div key={s.key} className="flex items-center gap-2">
@@ -124,7 +163,7 @@ const CustomerCheckout = () => {
 
         <AnimatePresence mode="wait">
           {/* STEP 1: MOBILE */}
-          {step === "mobile" && (
+          {step === "mobile" && !shouldBlockPayment && (
             <motion.div key="mobile" variants={stepVariants} initial="enter" animate="center" exit="exit" transition={{ duration: 0.25 }} className="space-y-6">
               <div className="text-center space-y-2">
                 <h1 className="text-2xl font-bold text-foreground">Verify your mobile number</h1>
@@ -156,7 +195,7 @@ const CustomerCheckout = () => {
           )}
 
           {/* STEP 2: OTP */}
-          {step === "otp" && (
+          {step === "otp" && !shouldBlockPayment && (
             <motion.div key="otp" variants={stepVariants} initial="enter" animate="center" exit="exit" transition={{ duration: 0.25 }} className="space-y-6">
               <button onClick={() => setStep("mobile")} className="text-sm text-primary flex items-center gap-1 -mt-2">
                 <ArrowLeft size={16} /> Back
@@ -189,10 +228,17 @@ const CustomerCheckout = () => {
           )}
 
           {/* STEP 3: PLAN & PAY */}
-          {step === "plan" && (
+          {step === "plan" && !shouldBlockPayment && (
             <motion.div key="plan" variants={stepVariants} initial="enter" animate="center" exit="exit" transition={{ duration: 0.25 }} className="space-y-5">
               <div className="text-center">
                 <h1 className="text-2xl font-bold text-foreground">Review your plan</h1>
+                {isAssisted ? (
+                  <p className="text-xs text-muted-foreground mt-1">
+                    Session: {sessionId || session.id} · Assisted flow: {session.flowType.replaceAll("_", " ")}
+                  </p>
+                ) : (
+                  <p className="text-xs text-muted-foreground mt-1">Organic checkout flow</p>
+                )}
               </div>
 
               {/* Your Details card */}
@@ -256,7 +302,7 @@ const CustomerCheckout = () => {
                   {session.discountAmount > 0 && (
                     <p className="text-sm text-muted-foreground line-through">{formatINR(session.planAmount)}</p>
                   )}
-                  <p className="text-3xl font-bold text-foreground">{formatINR(session.payableAmount)}</p>
+                  <p className="text-3xl font-bold text-foreground">{formatINR(finalPayableAmount)}</p>
                   {session.discountAmount > 0 && (
                     <p className="text-sm font-medium text-primary">You save {formatINR(session.discountAmount)}</p>
                   )}
@@ -294,11 +340,22 @@ const CustomerCheckout = () => {
                   </div>
                 )}
 
-                {session.consumedCoins > 0 && (
-                  <div className="border-t border-primary/10 pt-3">
-                    <p className="text-sm text-muted-foreground">
-                      Prosperr Coins applied: <span className="font-medium text-primary">-{formatINR(session.consumedCoins)}</span>
-                    </p>
+                {session.coinBalance > 0 && (
+                  <div className="border-t border-primary/10 pt-3 space-y-2">
+                    <label className="flex items-center gap-2 text-sm text-foreground cursor-pointer">
+                      <input
+                        type="checkbox"
+                        checked={useCoins}
+                        onChange={(e) => setUseCoins(e.target.checked)}
+                        className="accent-primary"
+                      />
+                      Apply Prosperr Coins ({formatINR(session.coinBalance)} available)
+                    </label>
+                    {useCoins && (
+                      <p className="text-sm text-muted-foreground">
+                        Prosperr Coins applied: <span className="font-medium text-primary">-{formatINR(coinDeduction)}</span>
+                      </p>
+                    )}
                   </div>
                 )}
               </div>
@@ -306,10 +363,13 @@ const CustomerCheckout = () => {
               {/* Total Payable */}
               <div className="bg-muted rounded-lg p-4 text-center">
                 <p className="text-sm text-muted-foreground">Total Payable</p>
-                <p className="text-3xl font-bold text-foreground">{formatINR(session.payableAmount)}</p>
+                <p className="text-3xl font-bold text-foreground">{formatINR(finalPayableAmount)}</p>
+                {paymentAttempts > 0 && (
+                  <p className="text-xs text-muted-foreground mt-1">Attempt #{paymentAttempts}</p>
+                )}
               </div>
 
-              <Button onClick={handlePay} disabled={loading} className="w-full h-14 text-lg font-bold bg-primary text-primary-foreground hover:bg-primary/90">
+              <Button onClick={handlePay} disabled={loading || shouldBlockPayment} className="w-full h-14 text-lg font-bold bg-primary text-primary-foreground hover:bg-primary/90">
                 {loading ? (
                   <span className="flex items-center gap-2">
                     <span className="w-5 h-5 border-2 border-primary-foreground/30 border-t-primary-foreground rounded-full animate-spin" />
@@ -341,7 +401,7 @@ const CustomerCheckout = () => {
           )}
 
           {/* STEP 4: SUCCESS */}
-          {step === "success" && (
+          {step === "success" && !shouldBlockPayment && (
             <motion.div key="success" variants={stepVariants} initial="enter" animate="center" exit="exit" transition={{ duration: 0.25 }} className="space-y-6 text-center">
               <motion.div initial={{ scale: 0 }} animate={{ scale: 1 }} transition={{ type: "spring", stiffness: 200, damping: 15 }} className="relative mx-auto w-24 h-24">
                 <motion.div initial={{ scale: 1, opacity: 0.6 }} animate={{ scale: 2, opacity: 0 }} transition={{ duration: 1, repeat: 1 }} className="absolute inset-0 rounded-full bg-primary/20" />
@@ -351,7 +411,7 @@ const CustomerCheckout = () => {
               </motion.div>
               <div>
                 <h1 className="text-2xl font-bold text-foreground">Payment Successful 🎉</h1>
-                <p className="text-muted-foreground mt-1">{formatINR(session.payableAmount)} paid · TXN: PRS{Date.now().toString().slice(-8)}</p>
+                <p className="text-muted-foreground mt-1">{formatINR(finalPayableAmount)} paid · TXN: PRS{Date.now().toString().slice(-8)}</p>
               </div>
               <div className="bg-primary-lighter rounded-lg p-5 text-left space-y-3">
                 <h3 className="font-semibold text-foreground">What's next?</h3>
@@ -372,7 +432,7 @@ const CustomerCheckout = () => {
           )}
 
           {/* STEP 4B: FAILED */}
-          {step === "failed" && (
+          {step === "failed" && !shouldBlockPayment && (
             <motion.div key="failed" variants={stepVariants} initial="enter" animate="center" exit="exit" transition={{ duration: 0.25 }} className="space-y-6 text-center">
               <motion.div initial={{ scale: 0 }} animate={{ scale: 1 }} transition={{ type: "spring", stiffness: 200, damping: 15 }} className="w-24 h-24 rounded-full bg-destructive/10 flex items-center justify-center mx-auto">
                 <XCircle size={48} className="text-destructive" />
@@ -382,12 +442,18 @@ const CustomerCheckout = () => {
                 <p className="text-muted-foreground mt-1">Payment was declined by your bank</p>
               </div>
               <div className="space-y-2">
-                <Button onClick={() => setStep("plan")} className="w-full h-12 bg-primary text-primary-foreground hover:bg-primary/90">Try Again</Button>
+                <Button onClick={() => setStep("plan")} className="w-full h-12 bg-primary text-primary-foreground hover:bg-primary/90">Try Again (New Attempt)</Button>
                 <button className="text-sm text-primary font-medium">Contact your advisor</button>
               </div>
             </motion.div>
           )}
         </AnimatePresence>
+
+        {shouldBlockPayment && (
+          <div className="mt-4 text-center text-sm text-muted-foreground">
+            Payment is currently unavailable for this session state.
+          </div>
+        )}
       </div>
 
       {/* Edit Details Bottom Sheet */}

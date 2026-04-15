@@ -2,6 +2,7 @@ import { useState, useCallback } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { ArrowLeft, AlertTriangle, Save, ShieldAlert, ExternalLink, CheckCircle2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { Textarea } from "@/components/ui/textarea";
 import SalesNavbar from "@/components/SalesNavbar";
 import SessionStatusChip from "@/components/SessionStatusChip";
 import SessionTimeline from "@/components/SessionTimeline";
@@ -18,18 +19,20 @@ const SessionDetail = () => {
   const [status, setStatus] = useState<SessionStatus>("AWAITING_APPROVAL");
   const [timedOut, setTimedOut] = useState(false);
   const [showSelfApproveModal, setShowSelfApproveModal] = useState(false);
+  const [showDraftModal, setShowDraftModal] = useState(false);
+  const [draftReason, setDraftReason] = useState("");
   const [approvedBy, setApprovedBy] = useState<string | null>(null);
   const [selfApproved, setSelfApproved] = useState(false);
 
   const timeline = [...session.timeline];
   if (approvedBy) {
     timeline.push({ event: `Approved by ${approvedBy}`, time: "2:37 PM", status: "APPROVED" });
-    timeline.push({ event: "Payment link generated", time: "2:37 PM", status: "PAYMENT_LINK_GENERATED" });
+    timeline.push({ event: "Payment link generated", time: "2:37 PM", status: "LINK_GENERATED" });
   }
   if (selfApproved) {
-    timeline.push({ event: "Approval timeout", time: "2:39 PM", status: "TIMEOUT" });
+    timeline.push({ event: "Approval timeout", time: "2:39 PM", status: "AWAITING_APPROVAL" });
     timeline.push({ event: `Self-approved by ${session.bdaName}`, time: "2:40 PM", status: "SELF_APPROVED" });
-    timeline.push({ event: "Payment link generated", time: "2:40 PM", status: "PAYMENT_LINK_GENERATED" });
+    timeline.push({ event: "Payment link generated", time: "2:40 PM", status: "LINK_GENERATED" });
   }
 
   const handleTimeout = useCallback(() => {
@@ -38,7 +41,7 @@ const SessionDetail = () => {
 
   const handleSimulateApproval = () => {
     setApprovedBy("Rahul M.");
-    setStatus("PAYMENT_LINK_GENERATED");
+    setStatus("LINK_GENERATED");
   };
 
   const handleSelfApprove = () => {
@@ -49,9 +52,10 @@ const SessionDetail = () => {
 
   const handleSaveDraft = () => {
     setStatus("DRAFT");
+    setShowDraftModal(false);
   };
 
-  const isLinkGenerated = status === "PAYMENT_LINK_GENERATED" || status === "SELF_APPROVED";
+  const isLinkGenerated = status === "LINK_GENERATED" || status === "SELF_APPROVED";
 
   return (
     <div className="sales-portal">
@@ -68,8 +72,11 @@ const SessionDetail = () => {
             <p className="text-xs text-sales-muted">Session</p>
             <p className="text-lg font-bold text-sales-foreground">#{getSessionShortId(session.id)}</p>
             <p className="text-xs text-sales-muted mt-1">Created at {new Date(session.createdAt).toLocaleTimeString()}</p>
+            <p className="text-xs text-sales-muted mt-1">
+              Flow: <span className="text-sales-foreground font-medium">{session.flowType}</span> · Source: <span className="text-sales-foreground font-medium">{session.source}</span>
+            </p>
           </div>
-          <SessionStatusChip status={status} selfApproved={selfApproved} dark />
+          <SessionStatusChip status={status} selfApproved={selfApproved} />
         </div>
 
         {/* Prospect Details */}
@@ -100,6 +107,10 @@ const SessionDetail = () => {
                 <span className="text-sales-muted">Contact ID: <span className="text-sales-foreground font-mono">{session.hubspotContactId}</span></span>
                 <a href="#" className="text-sales-accent text-xs flex items-center gap-1">View in HubSpot <ExternalLink size={10} /></a>
               </div>
+              <div className="flex items-center justify-between text-xs">
+                <span className="text-sales-muted">Deal ID: <span className="text-sales-foreground font-mono">{session.hubspotDealId || "—"}</span></span>
+                <span className="text-sales-muted">Sync: <span className="text-sales-foreground font-medium">{session.hubspotSyncStatus}</span></span>
+              </div>
               <div className="flex items-center gap-1.5 text-sales-muted">
                 <CheckCircle2 size={12} style={{ color: "hsl(var(--green-300))" }} />
                 <span>Payment Status synced</span>
@@ -127,7 +138,7 @@ const SessionDetail = () => {
               <h3 className="font-semibold text-sales-foreground">Awaiting Approval</h3>
             </div>
             <p className="text-sm text-sales-muted">A superior needs to approve this session before the payment link is generated.</p>
-            <ApprovalTimer totalSeconds={180} startedAt={session.approvalRequestedAt} onTimeout={handleTimeout} dark />
+            <ApprovalTimer totalSeconds={180} startedAt={session.approvalRequestedAt} onTimeout={handleTimeout} />
             <p className="text-xs text-sales-muted">Notified: {session.superiors.join(", ")}</p>
             <Button variant="outline" size="sm" onClick={handleSimulateApproval} className="border-sales-border text-sales-accent text-xs">
               🎬 Demo: Simulate Approval
@@ -144,7 +155,7 @@ const SessionDetail = () => {
             </div>
             <p className="text-sm text-sales-muted">No superior responded in 3 minutes. What would you like to do?</p>
             <div className="flex gap-3">
-              <Button variant="outline" onClick={handleSaveDraft} className="flex-1 border-sales-border text-sales-muted gap-2">
+              <Button variant="outline" onClick={() => setShowDraftModal(true)} className="flex-1 border-sales-border text-sales-muted gap-2">
                 <Save size={16} /> Save as Draft
               </Button>
               <Button onClick={() => setShowSelfApproveModal(true)} className="flex-1 gap-2 text-foreground" style={{ backgroundColor: "hsl(var(--gold))" }}>
@@ -171,21 +182,26 @@ const SessionDetail = () => {
         {/* Draft saved */}
         {status === "DRAFT" && (
           <div className="sales-card p-5 mb-4 text-center">
-            <p className="text-sales-muted text-sm">Session saved as draft. Expires in 24 hours.</p>
+            <p className="text-sales-muted text-sm">
+              Session saved as draft. Reason: {draftReason || "No reason captured"}.
+            </p>
           </div>
         )}
 
         {/* Share Link */}
         {isLinkGenerated && (
           <div className="mb-4">
-            <ShareLinkBox sessionId={session.id} mobile={session.prospectMobile} dark />
+            <ShareLinkBox sessionId={session.id} mobile={session.prospectMobile} />
+            <div className="mt-3 p-3 rounded-md border border-sales-border bg-sales-surface text-xs text-sales-muted">
+              UPS links expire in ~15 minutes. Link regeneration is automatic / customer-side; sales only creates sessions and shares links.
+            </div>
           </div>
         )}
 
         {/* Timeline */}
         <div className="sales-card p-5">
           <h3 className="text-sm font-semibold text-sales-foreground mb-4">Session Timeline</h3>
-          <SessionTimeline events={timeline} dark />
+          <SessionTimeline events={timeline} />
         </div>
       </div>
 
@@ -201,6 +217,31 @@ const SessionDetail = () => {
               <Button variant="outline" onClick={() => setShowSelfApproveModal(false)} className="flex-1 border-sales-border text-sales-muted">Cancel</Button>
               <Button onClick={handleSelfApprove} className="flex-1 text-foreground text-xs" style={{ backgroundColor: "hsl(var(--gold))" }}>
                 Yes, Proceed — I Take Responsibility
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {showDraftModal && (
+        <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50 p-6">
+          <div className="sales-card p-6 max-w-sm space-y-4">
+            <h3 className="font-semibold text-sales-foreground">Save as Draft</h3>
+            <p className="text-sm text-sales-muted">
+              Add a reason. This appears in history and user-facing draft messaging.
+            </p>
+            <Textarea
+              value={draftReason}
+              onChange={(e) => setDraftReason(e.target.value)}
+              placeholder="Why are you saving this session as draft?"
+              className="min-h-[90px] bg-sales-surface border-sales-border text-sales-foreground"
+            />
+            <div className="flex gap-3">
+              <Button variant="outline" onClick={() => setShowDraftModal(false)} className="flex-1 border-sales-border text-sales-muted">
+                Cancel
+              </Button>
+              <Button onClick={handleSaveDraft} disabled={!draftReason.trim()} className="flex-1 bg-sales-accent text-sales-accent-foreground">
+                Save Draft
               </Button>
             </div>
           </div>

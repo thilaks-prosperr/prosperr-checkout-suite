@@ -9,13 +9,12 @@ const statusConfig: Record<SessionStatus, { label: string; bg: string; text: str
   APPROVED: { label: "Approved", bg: "bg-primary-lighter", text: "text-primary", dot: "bg-primary" },
   REJECTED: { label: "Rejected", bg: "bg-destructive/10", text: "text-destructive", dot: "bg-destructive" },
   SELF_APPROVED: { label: "Self-Approved", bg: "bg-muted", text: "text-muted-foreground", dot: "bg-prosperr-gold" },
-  PAYMENT_LINK_GENERATED: { label: "Link Generated", bg: "bg-primary-lighter", text: "text-primary", dot: "bg-primary" },
+  LINK_GENERATED: { label: "Link Generated", bg: "bg-primary-lighter", text: "text-primary", dot: "bg-primary" },
   PAYMENT_PENDING: { label: "Payment Pending", bg: "bg-muted", text: "text-muted-foreground", dot: "bg-prosperr-gold", pulse: true },
   PAYMENT_COMPLETED: { label: "Completed", bg: "bg-primary-lighter", text: "text-primary", dot: "bg-primary" },
-  PAYMENT_FAILED: { label: "Failed", bg: "bg-destructive/10", text: "text-destructive", dot: "bg-destructive" },
+  FAILED: { label: "Failed", bg: "bg-destructive/10", text: "text-destructive", dot: "bg-destructive" },
   DRAFT: { label: "Draft", bg: "bg-muted", text: "text-muted-foreground", dot: "bg-muted-foreground" },
   EXPIRED: { label: "Expired", bg: "bg-muted", text: "text-muted-foreground", dot: "bg-muted-foreground" },
-  TIMEOUT: { label: "Timeout", bg: "bg-muted", text: "text-muted-foreground", dot: "bg-muted-foreground" },
 };
 
 const darkStatusConfig: Record<string, { bg: string; text: string; dot: string }> = {
@@ -26,13 +25,12 @@ const darkStatusConfig: Record<string, { bg: string; text: string; dot: string }
   APPROVED: { bg: "bg-prosperr-green-500/20", text: "text-prosperr-green-300", dot: "bg-prosperr-green-300" },
   REJECTED: { bg: "bg-red-900/40", text: "text-red-300", dot: "bg-red-400" },
   SELF_APPROVED: { bg: "bg-prosperr-gold/20", text: "text-prosperr-gold-light", dot: "bg-prosperr-gold-light" },
-  PAYMENT_LINK_GENERATED: { bg: "bg-prosperr-green-500/20", text: "text-prosperr-green-300", dot: "bg-prosperr-green-300" },
+  LINK_GENERATED: { bg: "bg-prosperr-green-500/20", text: "text-prosperr-green-300", dot: "bg-prosperr-green-300" },
   PAYMENT_PENDING: { bg: "bg-prosperr-gold/20", text: "text-prosperr-gold-light", dot: "bg-prosperr-gold-light" },
   PAYMENT_COMPLETED: { bg: "bg-prosperr-green-500/20", text: "text-prosperr-green-300", dot: "bg-prosperr-green-300" },
-  PAYMENT_FAILED: { bg: "bg-red-900/40", text: "text-red-300", dot: "bg-red-400" },
+  FAILED: { bg: "bg-red-900/40", text: "text-red-300", dot: "bg-red-400" },
   DRAFT: { bg: "bg-prosperr-navy-600", text: "text-prosperr-gray-300", dot: "bg-prosperr-gray-400" },
   EXPIRED: { bg: "bg-prosperr-navy-600", text: "text-prosperr-gray-300", dot: "bg-prosperr-gray-400" },
-  TIMEOUT: { bg: "bg-prosperr-navy-600", text: "text-prosperr-gray-300", dot: "bg-prosperr-gray-400" },
 };
 
 interface SessionStatusChipProps {

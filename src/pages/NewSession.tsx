@@ -11,26 +11,33 @@ const NewSession = () => {
   const navigate = useNavigate();
   const [form, setForm] = useState({
     hubspotContactId: "",
+    hubspotDealId: "",
+    hubspotOwnerId: "",
     name: "",
     mobile: "",
+    alternateMobile: "",
     email: "",
     planId: "",
     payableAmount: "",
-    applyCoins: false,
-    dueDate: "",
     preRenewal: false,
     notes: "",
+    overrideReason: "",
+    scenario: "FULL_PRICE" as "FULL_PRICE" | "HUBSPOT_DISCOUNT" | "BELOW_THRESHOLD",
   });
   const [loading, setLoading] = useState(false);
   const [hubspotLinked, setHubspotLinked] = useState(false);
   const [mobileCheckState, setMobileCheckState] = useState<"idle" | "loading" | "found" | "clear">("idle");
   const [showExistingBanner, setShowExistingBanner] = useState(false);
+  const [showActiveSessionBanner, setShowActiveSessionBanner] = useState(false);
   const [showConfirmModal, setShowConfirmModal] = useState(false);
 
   const selectedPlan = planOptions.find((p) => p.id === form.planId);
   const payable = Number(form.payableAmount) || 0;
   const discount = selectedPlan ? selectedPlan.discountedPrice - payable : 0;
   const belowMin = selectedPlan ? payable < selectedPlan.minPrice : false;
+  const hubspotThreshold = selectedPlan?.hubspotThreshold ?? 0;
+  const requiresApproval = form.scenario === "BELOW_THRESHOLD";
+  const isHubspotFlow = form.scenario === "HUBSPOT_DISCOUNT";
 
   const handleHubspotLookup = (value: string) => {
     setForm({ ...form, hubspotContactId: value });
@@ -39,6 +46,8 @@ const NewSession = () => {
       setForm({
         ...form,
         hubspotContactId: value,
+        hubspotDealId: "deal-19273",
+        hubspotOwnerId: "owner-93",
         name: mockHubspotContact.name,
         mobile: mockHubspotContact.mobile,
         email: mockHubspotContact.email,
@@ -56,8 +65,15 @@ const NewSession = () => {
       if (form.mobile === "8660319759") {
         setMobileCheckState("found");
         setShowExistingBanner(true);
+        setShowActiveSessionBanner(false);
+      } else if (form.mobile === "9000000000") {
+        setMobileCheckState("found");
+        setShowExistingBanner(false);
+        setShowActiveSessionBanner(true);
       } else {
         setMobileCheckState("clear");
+        setShowExistingBanner(false);
+        setShowActiveSessionBanner(false);
         setTimeout(() => setMobileCheckState("idle"), 2000);
       }
     }, 800);
@@ -69,6 +85,7 @@ const NewSession = () => {
   };
 
   const handleConfirmNew = () => {
+    if (!form.overrideReason.trim()) return;
     setShowConfirmModal(false);
     setMobileCheckState("idle");
   };
@@ -77,7 +94,16 @@ const NewSession = () => {
     navigate(`/checkout/sales/renewal?mobile=${form.mobile}`);
   };
 
+  const handleResumeSession = () => {
+    navigate(`/checkout/sales/session/01HRX5K2J8NQPWXYZ`);
+  };
+
   const handleSubmit = () => {
+    if (showExistingBanner) return;
+    if (form.scenario === "FULL_PRICE") {
+      navigate("/checkout");
+      return;
+    }
     setLoading(true);
     setTimeout(() => {
       setLoading(false);
@@ -100,8 +126,35 @@ const NewSession = () => {
         <h1 className="text-xl font-bold text-sales-foreground mb-6">New Assisted Session</h1>
 
         <div className="space-y-4">
-          {/* HubSpot Contact ID */}
           <div>
+            <label className="text-sm text-sales-muted mb-1 block">Choose Scenario</label>
+            <div className="grid grid-cols-1 gap-2">
+              <button
+                type="button"
+                onClick={() => setForm({ ...form, scenario: "FULL_PRICE" })}
+                className={`rounded-md border px-3 py-2 text-left text-sm ${form.scenario === "FULL_PRICE" ? "border-sales-accent text-sales-foreground bg-sales-accent/10" : "border-sales-border text-sales-muted"}`}
+              >
+                1) Full price agreed (12k for 12k) — guide user directly to prosperr.io/checkout
+              </button>
+              <button
+                type="button"
+                onClick={() => setForm({ ...form, scenario: "HUBSPOT_DISCOUNT" })}
+                className={`rounded-md border px-3 py-2 text-left text-sm ${form.scenario === "HUBSPOT_DISCOUNT" ? "border-sales-accent text-sales-foreground bg-sales-accent/10" : "border-sales-border text-sales-muted"}`}
+              >
+                2) HubSpot discount flow (within threshold) — no approval needed
+              </button>
+              <button
+                type="button"
+                onClick={() => setForm({ ...form, scenario: "BELOW_THRESHOLD" })}
+                className={`rounded-md border px-3 py-2 text-left text-sm ${form.scenario === "BELOW_THRESHOLD" ? "border-sales-accent text-sales-foreground bg-sales-accent/10" : "border-sales-border text-sales-muted"}`}
+              >
+                3) Below threshold from sales portal — approval required
+              </button>
+            </div>
+          </div>
+
+          {/* HubSpot Contact ID */}
+          <div className={isHubspotFlow ? "" : "opacity-80"}>
             <label className="text-sm text-sales-muted mb-1 block">HubSpot Contact ID (optional)</label>
             <Input
               value={form.hubspotContactId}
@@ -113,6 +166,12 @@ const NewSession = () => {
             {hubspotLinked && (
               <div className="mt-2 flex items-center gap-2 text-xs font-medium px-3 py-2 rounded-md" style={{ backgroundColor: "hsl(var(--green-500) / 0.15)", color: "hsl(var(--green-300))" }}>
                 <CheckCircle2 size={14} /> HubSpot sync enabled — payment status will update automatically
+              </div>
+            )}
+            {hubspotLinked && (
+              <div className="mt-2 grid grid-cols-2 gap-2 text-xs text-sales-muted">
+                <div className="rounded-md border border-sales-border px-2 py-1.5">Deal: <span className="font-medium text-sales-foreground">{form.hubspotDealId}</span></div>
+                <div className="rounded-md border border-sales-border px-2 py-1.5">Owner: <span className="font-medium text-sales-foreground">{form.hubspotOwnerId}</span></div>
               </div>
             )}
             {!hubspotLinked && form.hubspotContactId === "" && (
@@ -177,9 +236,40 @@ const NewSession = () => {
             </div>
           )}
 
+          {/* Existing active assisted session banner */}
+          {showActiveSessionBanner && (
+            <div className="rounded-lg p-4 space-y-3 border border-sales-border bg-sales-surface-hover">
+              <div className="flex items-start gap-2">
+                <AlertTriangle size={16} className="mt-0.5 shrink-0 text-sales-accent" />
+                <div>
+                  <p className="text-sm font-semibold text-sales-foreground">An active assisted session already exists for this mobile</p>
+                  <p className="text-xs text-sales-muted mt-1">
+                    Session: #{mockSessionId.slice(-8)} · Status: Awaiting Approval
+                  </p>
+                </div>
+              </div>
+              <Button onClick={handleResumeSession} className="w-full bg-sales-accent text-sales-accent-foreground">
+                Resume Existing Session
+              </Button>
+            </div>
+          )}
+
           <div>
             <label className="text-sm text-sales-muted mb-1 block">Email (optional)</label>
             <Input value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })} placeholder="email@example.com" className={inputClasses} />
+          </div>
+
+          <div>
+            <label className="text-sm text-sales-muted mb-1 block">Alternate Mobile (optional)</label>
+            <div className="relative">
+              <span className="absolute left-3 top-1/2 -translate-y-1/2 text-sales-muted text-sm">+91</span>
+              <Input
+                value={form.alternateMobile}
+                onChange={(e) => setForm({ ...form, alternateMobile: e.target.value.replace(/\D/g, "").slice(0, 10) })}
+                placeholder="For follow-up / changed number"
+                className={`pl-12 ${inputClasses}`}
+              />
+            </div>
           </div>
 
           <div>
@@ -205,29 +295,40 @@ const NewSession = () => {
                 <label className="text-sm text-sales-muted mb-1 block">Custom Payable Amount</label>
                 <Input type="number" value={form.payableAmount} onChange={(e) => setForm({ ...form, payableAmount: e.target.value })} className={`${inputClasses} ${belowMin ? "border-red-500" : ""}`} />
                 <p className="text-xs text-sales-muted mt-1">Min: {formatINR(selectedPlan.minPrice)} · Max: {formatINR(selectedPlan.maxPrice)}</p>
-                {belowMin && <p className="text-xs text-red-400 mt-1">Below minimum price — will require approval</p>}
+                {belowMin && <p className="text-xs text-red-400 mt-1">Below minimum price — pricing issue.</p>}
                 {discount > 0 && <p className="text-xs mt-1" style={{ color: "hsl(var(--green-300))" }}>Discount: {formatINR(discount)}</p>}
-              </div>
-              <div className="flex items-center gap-3">
-                <input type="checkbox" checked={form.applyCoins} onChange={(e) => setForm({ ...form, applyCoins: e.target.checked })} className="accent-sales-accent" />
-                <label className="text-sm text-sales-muted">Apply Prosperr Coins (200 available)</label>
+                {isHubspotFlow && (
+                  <p className="text-xs text-sales-muted mt-1">
+                    HubSpot threshold for this plan: {formatINR(hubspotThreshold)}. Current payable {formatINR(payable || 0)}.
+                  </p>
+                )}
+                {requiresApproval && (
+                  <p className="text-xs mt-1" style={{ color: "hsl(var(--gold-light))" }}>
+                    Approval required: deal is below HubSpot threshold.
+                  </p>
+                )}
               </div>
             </>
           )}
-
-          <div>
-            <label className="text-sm text-sales-muted mb-1 block">Due Date (optional)</label>
-            <Input type="date" value={form.dueDate} onChange={(e) => setForm({ ...form, dueDate: e.target.value })} className={inputClasses} />
-          </div>
 
           <div>
             <label className="text-sm text-sales-muted mb-1 block">Notes for approver (optional)</label>
             <Textarea value={form.notes} onChange={(e) => setForm({ ...form, notes: e.target.value })} placeholder="Any context for the approving superior..." className={`${inputClasses} min-h-[80px]`} />
           </div>
 
-          <Button onClick={handleSubmit} disabled={!form.name || !form.mobile || !form.planId || loading} className="w-full h-12 bg-sales-accent text-sales-accent-foreground hover:bg-sales-accent/90 gap-2 mt-4">
+          <p className="text-xs text-sales-muted">
+            Session validity is defaulted to 24 hours from creation.
+          </p>
+
+          <Button onClick={handleSubmit} disabled={!form.name || !form.mobile || !form.planId || loading || showExistingBanner || showActiveSessionBanner} className="w-full h-12 bg-sales-accent text-sales-accent-foreground hover:bg-sales-accent/90 gap-2 mt-4">
             {loading ? <span className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" /> : <Send size={16} />}
-            {loading ? "Creating..." : "Generate Session & Request Approval"}
+            {loading
+              ? "Creating..."
+              : form.scenario === "FULL_PRICE"
+              ? "Guide Customer to prosperr.io/checkout"
+              : requiresApproval
+              ? "Generate Session & Request Approval"
+              : "Generate Session Link (No Approval Needed)"}
           </Button>
         </div>
       </div>
@@ -240,9 +341,18 @@ const NewSession = () => {
             <p className="text-sm text-sales-muted">
               This user already has an active subscription. Creating a new session will result in a separate subscription. Are you sure this is not a renewal?
             </p>
+            <div className="space-y-2">
+              <label className="text-xs text-sales-muted block">Override reason (required)</label>
+              <Textarea
+                value={form.overrideReason}
+                onChange={(e) => setForm({ ...form, overrideReason: e.target.value })}
+                placeholder="Why are you creating a new session instead of renewal?"
+                className="min-h-[70px] bg-sales-surface border-sales-border text-sales-foreground"
+              />
+            </div>
             <div className="flex gap-3">
               <Button variant="outline" onClick={() => { setShowConfirmModal(false); setShowExistingBanner(true); }} className="flex-1 border-sales-border text-sales-muted">Cancel</Button>
-              <Button onClick={handleConfirmNew} className="flex-1 bg-sales-accent text-sales-accent-foreground">Yes, this is a new purchase</Button>
+              <Button onClick={handleConfirmNew} disabled={!form.overrideReason.trim()} className="flex-1 bg-sales-accent text-sales-accent-foreground">Yes, this is a new purchase</Button>
             </div>
           </div>
         </div>

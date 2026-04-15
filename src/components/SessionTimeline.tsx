@@ -9,11 +9,10 @@ const iconMap: Record<string, React.ReactNode> = {
   APPROVED: <Check size={14} />,
   REJECTED: <AlertTriangle size={14} />,
   SELF_APPROVED: <AlertTriangle size={14} />,
-  PAYMENT_LINK_GENERATED: <Send size={14} />,
+  LINK_GENERATED: <Send size={14} />,
   PAYMENT_PENDING: <CreditCard size={14} />,
   PAYMENT_COMPLETED: <Check size={14} />,
-  PAYMENT_FAILED: <AlertTriangle size={14} />,
-  TIMEOUT: <Clock size={14} />,
+  FAILED: <AlertTriangle size={14} />,
   DRAFT: <Clock size={14} />,
   EXPIRED: <Clock size={14} />,
 };
