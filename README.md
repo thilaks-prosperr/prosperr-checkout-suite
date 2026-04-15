@@ -113,28 +113,35 @@ flowchart TD
   G --> I[Show remaining due, no invoice yet]
 ```
 
-## Screenshots (add assets)
+## Screenshots
 
-- Place images under `docs/assets/screenshots/`.
-- Recommended files:
-  - `sales-new-session-gst-partial.png`
-  - `approval-queue-and-history.png`
-  - `customer-checkout-tax-breakup.png`
-  - `partial-payment-success.png`
-  - `terminal-states-draft-expired-rejected.png`
-- Embed example:
+### Sales landing (CMS and sales-rep switch)
 
-```md
-![Sales new session with GST and partial payment](docs/assets/screenshots/sales-new-session-gst-partial.png)
-```
+![Sales landing view](docs/assets/screenshots/landing-page-cms-sales-rep.png)
 
-## Demo videos (add links/files)
+### Sales rep new client flow
 
-- Store videos under `docs/assets/videos/` or link external recordings.
-- Suggested clips:
-  - `sales-assisted-journey.mp4` (`create session -> approval -> share link`)
-  - `customer-partial-to-full-settlement.mp4` (`OTP -> partial pay -> remaining due -> full settlement expectation`)
-- Include timestamp notes in README for key moments (ex: `00:35 approval timeout`, `01:20 partial success state`).
+![Sales rep new client](docs/assets/screenshots/sales-rep-new-client.png)
+
+### CMS approvals and queue visibility
+
+![CMS approvals](docs/assets/screenshots/cms-approvals.png)
+
+### Customer plan review
+
+![Customer plan review](docs/assets/screenshots/customer-plan-review.png)
+
+## Demo videos
+
+- [CMS-side walkthrough](docs/assets/videos/cms-side.mov)
+- [Sales-rep walkthrough](docs/assets/videos/sales-rep.mov)
+- [Prospect-side walkthrough](docs/assets/videos/prospects.mov)
+
+Suggested key timestamps to annotate (optional):
+
+- `00:00` session entry and role context
+- `00:30` approval/review branch
+- `01:00` payment step and resulting state
 
 ## API contract highlights
 
@@ -190,6 +197,6 @@ Binding rule:
 
 ## Documentation gaps still open
 
-- Add real screenshots and video files to `docs/assets/`.
-- Add links to actual recordings (Loom/Drive) if binaries are not committed.
+- Add one screenshot showing partial-payment success state with remaining due + invoice gating message.
+- Add one screenshot for terminal blocked states (`DRAFT`, `EXPIRED`, `REJECTED`) on customer side.
 - Optional: add architecture sequence diagrams as exported SVG for Confluence reuse.
