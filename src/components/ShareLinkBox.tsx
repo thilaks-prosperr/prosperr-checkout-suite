@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Copy, Check, MessageCircle, QrCode } from "lucide-react";
+import { Copy, Check, MessageCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
 interface ShareLinkBoxProps {
@@ -55,13 +55,6 @@ const ShareLinkBox = ({ sessionId, mobile, dark }: ShareLinkBoxProps) => {
           <MessageCircle size={16} />
           Share via WhatsApp
         </Button>
-      </div>
-
-      <div className={`text-center ${mutedColor}`}>
-        <div className={`inline-flex items-center justify-center w-32 h-32 rounded-lg ${codeBg} mb-2`}>
-          <QrCode size={80} className={dark ? "text-sales-accent" : "text-primary"} />
-        </div>
-        <p className="text-xs">Scan QR to open checkout</p>
       </div>
 
       <p className={`text-xs ${mutedColor} text-center`}>

@@ -82,8 +82,9 @@ const ApprovalPortal = () => {
                   <p className="text-xs text-sales-muted">
                     {s.bdaName} · {formatINR(s.payableAmount)} / {formatINR(s.planAmount)} · {((s.discountAmount / s.planAmount) * 100).toFixed(0)}% off
                   </p>
+                  <p className="text-[10px] text-sales-muted">Flow: {s.flowType.replaceAll("_", " ")} · Source: {s.source}</p>
                 </div>
-                <SessionStatusChip status={s.status} selfApproved={s.selfApproved} dark />
+                <SessionStatusChip status={s.status} selfApproved={s.selfApproved} />
               </div>
             ))}
           </div>

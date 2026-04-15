@@ -6,13 +6,15 @@ export type SessionStatus =
   | "APPROVED"
   | "REJECTED"
   | "SELF_APPROVED"
-  | "PAYMENT_LINK_GENERATED"
+  | "LINK_GENERATED"
   | "PAYMENT_PENDING"
   | "PAYMENT_COMPLETED"
-  | "PAYMENT_FAILED"
+  | "FAILED"
   | "DRAFT"
-  | "EXPIRED"
-  | "TIMEOUT";
+  | "EXPIRED";
+
+export type SessionFlowType = "ORGANIC" | "INORGANIC_HUBSPOT" | "INORGANIC_MANUAL" | "RENEWAL";
+export type HubspotSyncStatus = "NOT_LINKED" | "LINKED" | "PUSHING" | "PUSH_FAILED" | "RETRY_QUEUED" | "PUSHED";
 
 export interface TimelineEvent {
   event: string;
@@ -23,6 +25,8 @@ export interface TimelineEvent {
 export interface CheckoutSession {
   id: string;
   status: SessionStatus;
+  flowType: SessionFlowType;
+  source: "WEBSITE" | "HUBSPOT" | "SALES_PORTAL";
   prospectName: string;
   prospectMobile: string;
   prospectEmail: string;
@@ -46,13 +50,20 @@ export interface CheckoutSession {
   selfApproved?: boolean;
   approvedBy?: string;
   rejectionReason?: string;
+  selfApprovalReason?: string;
+  approvalRequestedBy?: string;
+  approvedAt?: string;
   notes?: string;
   timeline: TimelineEvent[];
   dependents?: { name: string; relationship: string; planType: string }[];
   isRenewal?: boolean;
   hubspotContactId?: string;
-  hubspotSynced?: boolean;
+  hubspotSyncStatus: HubspotSyncStatus;
+  hubspotDealId?: string;
+  hubspotOwnerId?: string;
   hubspotLastSyncedAt?: string;
+  existingCustomerFound?: boolean;
+  overrideReason?: string;
 }
 
 export interface Subscriber {
@@ -73,12 +84,13 @@ export interface PlanOption {
   discountedPrice: number;
   minPrice: number;
   maxPrice: number;
+  hubspotThreshold: number;
 }
 
 export const planOptions: PlanOption[] = [
-  { id: "SS_BASIC", name: "Super Saver Basic", price: 6000, discountedPrice: 5000, minPrice: 3000, maxPrice: 6000 },
-  { id: "SS_PREMIUM", name: "Super Saver Premium", price: 12000, discountedPrice: 10000, minPrice: 5000, maxPrice: 12000 },
-  { id: "SS_ELITE", name: "Super Saver Elite", price: 25000, discountedPrice: 20000, minPrice: 12000, maxPrice: 25000 },
+  { id: "SS_BASIC", name: "Super Saver Basic", price: 6000, discountedPrice: 5000, minPrice: 3000, maxPrice: 6000, hubspotThreshold: 4200 },
+  { id: "SS_PREMIUM", name: "Super Saver Premium", price: 12000, discountedPrice: 10000, minPrice: 5000, maxPrice: 12000, hubspotThreshold: 8499 },
+  { id: "SS_ELITE", name: "Super Saver Elite", price: 25000, discountedPrice: 20000, minPrice: 12000, maxPrice: 25000, hubspotThreshold: 16999 },
 ];
 
 export const planIncludes: Record<string, string[]> = {
@@ -117,6 +129,8 @@ export const mockHubspotContact = {
 export const mockSession: CheckoutSession = {
   id: "01HRX5K2J8NQPWXYZ",
   status: "AWAITING_APPROVAL",
+  flowType: "INORGANIC_MANUAL",
+  source: "SALES_PORTAL",
   prospectName: "Ravi Kumar",
   prospectMobile: "8660319759",
   prospectEmail: "ravi.kumar@gmail.com",
@@ -135,6 +149,7 @@ export const mockSession: CheckoutSession = {
   expiresAt: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString(),
   superiors: ["Rahul M.", "Priya K.", "Suresh T."],
   approvalRequestedAt: new Date().toISOString(),
+  approvalRequestedBy: "Anjali D.",
   coinBalance: 200,
   consumedCoins: 0,
   notes: "Client insisted on 7k. Very warm lead, ready to sign. Please approve.",
@@ -142,8 +157,11 @@ export const mockSession: CheckoutSession = {
     { name: "Meera Kumar", relationship: "Spouse", planType: "Dependent Filing" },
   ],
   hubspotContactId: "hs-8472019",
-  hubspotSynced: true,
+  hubspotDealId: "deal-19273",
+  hubspotOwnerId: "owner-93",
+  hubspotSyncStatus: "LINKED",
   hubspotLastSyncedAt: "2:41 PM",
+  existingCustomerFound: true,
   timeline: [
     { event: "Session created", time: "2:34 PM", status: "INITIATED" },
     { event: "OTP sent to +91 XXXXXX4759", time: "2:35 PM", status: "OTP_SENT" },
@@ -172,18 +190,36 @@ export const mockSessions: CheckoutSession[] = [
     prospectMobile: "9876543210",
     prospectEmail: "priya.s@gmail.com",
     status: "PAYMENT_COMPLETED",
+    flowType: "INORGANIC_HUBSPOT",
+    source: "HUBSPOT",
     payableAmount: 10000,
     discountAmount: 2000,
     selfApproved: false,
     approvedBy: "Rahul M.",
     hubspotContactId: "hs-9283741",
-    hubspotSynced: true,
+    hubspotDealId: "deal-83472",
+    hubspotOwnerId: "owner-41",
+    hubspotSyncStatus: "PUSHED",
     timeline: [
       ...mockSession.timeline,
       { event: "Approved by Rahul M.", time: "2:37 PM", status: "APPROVED" },
-      { event: "Payment link generated", time: "2:37 PM", status: "PAYMENT_LINK_GENERATED" },
+      { event: "Payment link generated", time: "2:37 PM", status: "LINK_GENERATED" },
       { event: "Payment completed ✓", time: "2:41 PM", status: "PAYMENT_COMPLETED" },
       { event: "HubSpot synced ✓", time: "2:41 PM", status: "PAYMENT_COMPLETED" },
+    ],
+  },
+  {
+    ...mockSession,
+    id: "01HRX5K2J8REJECT1",
+    prospectName: "Nikita Jain",
+    prospectMobile: "9012345678",
+    prospectEmail: "nikita.jain@gmail.com",
+    status: "REJECTED",
+    rejectionReason: "Supervisor rejected: discount below allowed policy without required evidence.",
+    hubspotSyncStatus: "PUSHING",
+    timeline: [
+      ...mockSession.timeline,
+      { event: "Approval rejected by Priya K.", time: "2:42 PM", status: "REJECTED" },
     ],
   },
   {
@@ -192,14 +228,17 @@ export const mockSessions: CheckoutSession[] = [
     prospectName: "Amit Patel",
     prospectMobile: "7890123456",
     status: "SELF_APPROVED",
+    flowType: "INORGANIC_MANUAL",
+    source: "SALES_PORTAL",
     selfApproved: true,
+    selfApprovalReason: "Superior unavailable during customer call. Client requested immediate completion.",
     payableAmount: 4500,
     discountAmount: 7500,
     hubspotContactId: undefined,
-    hubspotSynced: false,
+    hubspotSyncStatus: "NOT_LINKED",
     timeline: [
       ...mockSession.timeline,
-      { event: "Approval timeout", time: "2:39 PM", status: "TIMEOUT" },
+      { event: "Approval timeout", time: "2:39 PM", status: "AWAITING_APPROVAL" },
       { event: "Self-approved by Anjali D.", time: "2:40 PM", status: "SELF_APPROVED" },
     ],
   },
@@ -209,10 +248,13 @@ export const mockSessions: CheckoutSession[] = [
     prospectName: "Sneha Reddy",
     prospectMobile: "9123456780",
     status: "DRAFT",
+    flowType: "RENEWAL",
+    source: "SALES_PORTAL",
     payableAmount: 8000,
     discountAmount: 4000,
     hubspotContactId: "hs-1029384",
-    hubspotSynced: false,
+    hubspotSyncStatus: "RETRY_QUEUED",
+    notes: "Saved as draft by BDA due to customer unavailability on call.",
   },
 ];
 
@@ -229,6 +271,7 @@ export const mockPendingApprovals: CheckoutSession[] = [
     notes: "Long-time referral from existing client. Needs approval for special pricing.",
     approvalRequestedAt: new Date(Date.now() - 60000).toISOString(),
     hubspotContactId: "hs-5738291",
+    hubspotSyncStatus: "LINKED",
   },
 ];
 

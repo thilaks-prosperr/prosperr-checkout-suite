@@ -94,13 +94,13 @@ const RenewalFlow = () => {
 
         {subscriber && (
           <div className="space-y-6">
-            <SubscriberCard subscriber={subscriber} dark />
+            <SubscriberCard subscriber={subscriber} />
 
             <div className="space-y-4">
               {/* Renewal Start Date - locked */}
               <div>
                 <label className="text-sm text-sales-muted mb-1 block">Renewal Start Date</label>
-                <div className="h-10 rounded-md px-3 flex items-center text-sm text-sales-muted" style={{ backgroundColor: "hsl(var(--navy-950))", border: "1px solid hsl(var(--navy-500))" }}>
+                <div className="h-10 rounded-md px-3 flex items-center text-sm text-sales-muted" style={{ backgroundColor: "hsl(var(--muted))", border: "1px solid hsl(var(--border))" }}>
                   {formatDate(subscriber.expiresAt)} (from original end date — non-editable)
                 </div>
               </div>

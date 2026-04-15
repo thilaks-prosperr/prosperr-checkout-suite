@@ -59,7 +59,7 @@ const ApprovalCard = ({ session, onApprove, onReject }: ApprovalCardProps) => {
           </p>
           <p className="text-sm text-sales-muted mt-1">Session #{getSessionShortId(session.id)} · 2 min ago</p>
         </div>
-        <SessionStatusChip status={session.status} dark />
+        <SessionStatusChip status={session.status} />
       </div>
 
       <div className="space-y-2 text-sm">
@@ -99,14 +99,14 @@ const ApprovalCard = ({ session, onApprove, onReject }: ApprovalCardProps) => {
       </div>
 
       {session.notes && (
-        <div className="rounded-md p-3" style={{ backgroundColor: "hsl(var(--navy-950))" }}>
+        <div className="rounded-md p-3 bg-muted">
           <p className="text-xs text-sales-muted mb-1">Notes:</p>
           <p className="text-sm text-sales-foreground italic">"{session.notes}"</p>
         </div>
       )}
 
       {!timedOut && (
-        <ApprovalTimer totalSeconds={180} startedAt={session.approvalRequestedAt} onTimeout={() => setTimedOut(true)} dark />
+        <ApprovalTimer totalSeconds={180} startedAt={session.approvalRequestedAt} onTimeout={() => setTimedOut(true)} />
       )}
 
       {timedOut ? (
@@ -116,7 +116,7 @@ const ApprovalCard = ({ session, onApprove, onReject }: ApprovalCardProps) => {
           <p className="text-sm text-sales-foreground">Select rejection reason:</p>
           <div className="space-y-2">
             {rejectionReasons.map((r) => (
-              <label key={r} className={`flex items-center gap-2 p-2 rounded-md cursor-pointer text-sm transition-colors ${reason === r ? "bg-red-900/30 text-red-300" : "text-sales-muted hover:bg-sales-surface-hover"}`}>
+              <label key={r} className={`flex items-center gap-2 p-2 rounded-md cursor-pointer text-sm transition-colors ${reason === r ? "bg-red-100 text-red-700" : "text-sales-muted hover:bg-sales-surface-hover"}`}>
                 <input type="radio" name="reject-reason" value={r} checked={reason === r} onChange={() => setReason(r)} className="accent-red-500" />
                 {r}
               </label>
@@ -129,7 +129,7 @@ const ApprovalCard = ({ session, onApprove, onReject }: ApprovalCardProps) => {
         </div>
       ) : (
         <div className="flex gap-3">
-          <Button variant="outline" onClick={() => setShowReject(true)} className="flex-1 border-red-800 text-red-400 hover:bg-red-900/30 gap-2">
+          <Button variant="outline" onClick={() => setShowReject(true)} className="flex-1 border-red-300 text-red-600 hover:bg-red-50 gap-2">
             <X size={16} /> Reject
           </Button>
           <Button onClick={handleApprove} className="flex-1 bg-sales-accent hover:bg-sales-accent/90 text-sales-accent-foreground gap-2">
