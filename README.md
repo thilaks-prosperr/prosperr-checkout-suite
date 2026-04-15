@@ -195,8 +195,3 @@ Binding rule:
   - draft path requires reason, or
   - self-approve path is allowed with audit flag
 
-## Documentation gaps still open
-
-- Add one screenshot showing partial-payment success state with remaining due + invoice gating message.
-- Add one screenshot for terminal blocked states (`DRAFT`, `EXPIRED`, `REJECTED`) on customer side.
-- Optional: add architecture sequence diagrams as exported SVG for Confluence reuse.
